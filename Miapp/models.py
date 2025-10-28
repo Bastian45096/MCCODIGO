@@ -1,54 +1,68 @@
 from django.db import models
 
-# Create your models here.
-
-class Busqueda:
-    Id_Busqueda = models.BigIntegerField(primary_key=True)
-    Criterios_Busqueda = models.TextField()
+class Usuario(models.Model):
+    id_usuario = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=255)
+    email = models.EmailField(max_length=255)
+    rol_id = models.ForeignKey('Rol', on_delete=models.CASCADE)
+    activo = models.CharField(max_length=1)
     
 
-class Usuario:
-    ID_Usuario = models.BigIntegerField(primary_key=True)
-    Nombre = models.CharField(max_length=255)
-    Email = models.CharField(max_length=255)
-    Activo = models.BooleanField()
+class Rol(models.Model):
+    id_rol = models.AutoField(primary_key=True)
+    nombre_rol = models.CharField(max_length=50)
+    descripcion_rol = models.TextField()
 
+class Permiso(models.Model):
+    id_permiso = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=50)
+    descripcion_permiso = models.TextField()
 
+class RolPermiso(models.Model):
+    rol = models.ForeignKey(Rol, on_delete=models.CASCADE)
+    permiso = models.ForeignKey(Permiso, on_delete=models.CASCADE)
 
-class Calificacion_Tributaria:
-    CallID = models.BigIntegerField(primary_key=True)
-    Monto = models.FloatField()
-    Factor = models.FloatField()
-    Periodo = models.DateField()
-    Instrumento = models.CharField(max_length=255)
-    Estado = models.CharField(max_length=50)
-    Fecha_Creacion = models.DateTimeField()
-    Fecha_Modificacion = models.DateTimeField()
+class InstrumentoNI(models.Model):
+    id_instru = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=255)
+    regla_es = models.TextField()
+    estado = models.CharField(max_length=50)
 
-class Rol:
+class Calificacion(models.Model):
+    calid = models.AutoField(primary_key=True)
+    monto = models.FloatField()
+    factor = models.FloatField()
+    periodo = models.DateField()
+    instrumento = models.ForeignKey(InstrumentoNI, on_delete=models.CASCADE)
+    estado = models.CharField(max_length=50)
+    fecha_creacion = models.DateField()
+    fecha_modificacion = models.DateField()
+    usuario_id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    factor_val_id_factor = models.ForeignKey('Factor_Val', on_delete=models.CASCADE)
 
-    ID_Rol = models.BigIntegerField(primary_key=True)
-    Nombre_Rol = models.CharField(max_length=50)
-    Descripcion = models.TextField()
+class Factor_Val(models.Model):
+    id_factor = models.AutoField(primary_key=True)
+    rango_minimo = models.FloatField()
+    rango_maximo = models.FloatField()
+    descripcion = models.TextField()
 
-class Permiso:
+class CargaMasiva(models.Model):
+    id_cm = models.AutoField(primary_key=True)
+    archivo = models.BinaryField()
+    errores = models.TextField()
+    calificacion_calid = models.ForeignKey(Calificacion, on_delete=models.CASCADE)
 
-    ID_Permiso = models.BigIntegerField(primary_key=True)
-    Nombre = models.CharField(max_length=50)
-    Descripcion = models.TextField()
+class Busqueda(models.Model):
+    id_busqueda = models.AutoField(primary_key=True)
+    criterios_busqueda = models.TextField()
+    usuario_id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
 
-class InstrumentoNI:
-    
-    ID_Instru = models.BigIntegerField(primary_key=True)
-    Nombre = models.CharField(max_length=255)
-    Reglas_especiales = models.TextField()
-    Estado = models.CharField(max_length=50)
-    _
-class Auditoria:
-    id_Auditoria = models.BigIntegerField(primary_key=True)
+class Auditoria(models.Model):
+    id_Auditoria = models.AutoField(primary_key=True)
     accion = models.CharField(max_length=255)
     Tabla = models.CharField(max_length=255)
-    Cambios = models.JSONField()
-    Fecha = models.DateTimeField()
+    Cambios = models.TextField()
+    Fecha = models.DateField()
     ip = models.CharField(max_length=255)
     Firma_Digital = models.CharField(max_length=255)
+    usuario_id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
