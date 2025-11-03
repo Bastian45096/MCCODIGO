@@ -6,9 +6,8 @@
     <title>Document</title>
 </head>
 <body>
-    {{% csrf_token %}}
-
-
+    {% csrf_token %}
+    {{form.as_p}}
     <h1>login1</h1>
     
 </body>
