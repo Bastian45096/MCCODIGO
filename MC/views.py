@@ -1,25 +1,36 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.hashers import make_password
-from ..Miapp.forms import Login_U, Registrar_U
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from Miapp.forms import LoginUsuarioForm
 
-# Create your views here.
-
-def login(request):
+def login_usuario(request):
     if request.method == 'POST':
-
-        form = Login_U(request.POST)
+        form = LoginUsuarioForm(request.POST)
         if form.is_valid():
-            email = form.cleaned_data['email_usuario']
-            contraseña_usuario = form.cleaned_data['contraseña_usuario']
-            User = authenticate(request, email=email, contraseña_usuario=contraseña_usuario)
-            if User is not None:
-                login(request, User)
-                return redirect('Inicio')
-
+            usuario_input = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            user = authenticate(request, username=usuario_input, password=password)
+            if user is not None:
+                login(request, user)
+                messages.success(request, f'Bienvenido {user.nombre}')
+                return redirect('inicio')
             else:
-                form.add_error(None, 'Los datos no existen o no concuerdan')
+                messages.error(request, 'Correo electrónico/nombre o contraseña incorrectos.')
     else:
-        form = Login_U()
-    return render(request,'login.html')
+        form = LoginUsuarioForm()
+    return render(request, 'login.html', {'form': form})
 
+@login_required
+def inicio(request):
+    try:
+        perfil = request.user.perfil
+        rol_nombre = perfil.rol_id.nombre_rol
+    except Exception:
+        perfil = None
+        rol_nombre = "No Asignado (Perfil no creado)"
+    context = {
+        'nombre_usuario_login': request.user.nombre,
+        'rol_usuario': rol_nombre,
+    }
+    return render(request, 'inicio.html', context)
