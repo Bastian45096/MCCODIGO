@@ -68,6 +68,21 @@ class Rol(models.Model):
     nombre_rol = models.CharField(max_length=50)
     descripcion_rol = models.TextField()
 
+    def Agregar_rol(self, nombre, descripcion):
+        self.nombre_rol = nombre
+        self.descripcion_rol = descripcion
+        self.save()
+
+
+    def Eliminar_rol(self):
+        self.delete()
+
+    def Listar_permisos(self):
+        return self.Listar_permisos.all()
+    
+    def Actualizar_descripcion(self, nueva_descripcion):
+        self.descripcion_rol = nueva_descripcion
+        self.save()
 
 class Permiso(models.Model):
     id_permiso = models.AutoField(primary_key=True)
@@ -93,6 +108,12 @@ class Factor_Val(models.Model):
     rango_maximo = models.FloatField()
     descripcion = models.TextField()
 
+    def validar_factor(self):
+        if self.rango_minimo >= self.rango_maximo:
+            raise ValueError("El rango minimo debe ser menor que el rango maximo")
+        return True
+    
+
 
 class Calificacion(models.Model):
     calid = models.AutoField(primary_key=True)
@@ -105,6 +126,46 @@ class Calificacion(models.Model):
     fecha_modificacion = models.DateField()
     usuario_id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     factor_val_id_factor = models.ForeignKey(Factor_Val, on_delete=models.CASCADE)
+
+    @staticmethod
+    def Crear_Calificacion(monto, factor, periodo, instrumento, estado, usuario, factor_val):
+        return Calificacion.objects.create(
+            monto=monto,
+            factor=factor,
+            periodo=periodo,
+            instrumento=instrumento,
+            estado=estado,
+            usuario_id_usuario=usuario,
+            factor_val_id_factor=factor_val
+        )
+    
+    def Eliminar_calificacion(self):
+        self.delete
+
+
+    def Editar_calificacion(self, monto=None,
+                            factor=None,
+                            periodo=None,
+                            estado=None):
+        if monto is not None:
+            
+            self.monto = monto
+        
+        if factor is not None:
+
+            self.factor = factor
+
+        if periodo is not None:
+
+            self.periodo = periodo
+
+        if estado is not None:
+            self.estado = estado
+        
+        self.save()
+
+        
+
 
 
 class CargaMasiva(models.Model):
@@ -119,6 +180,10 @@ class Busqueda(models.Model):
     criterios_busqueda = models.TextField()
     usuario_id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
+    @staticmethod
+    def Buscar(criterios):
+        return Busqueda.objects.filter(criterios_busqueda__icontains=criterios)
+    
 
 class Auditoria(models.Model):
     id_Auditoria = models.AutoField(primary_key=True)
