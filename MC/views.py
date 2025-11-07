@@ -1,9 +1,17 @@
+# views.py
+
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from Miapp.forms import LoginUsuarioForm
+from Miapp.models import UserAuth
 
+
+# -------------------------------
+# Vista de login con redirección
+# -------------------------------
 def login_usuario(request):
     if request.method == 'POST':
         form = LoginUsuarioForm(request.POST)
@@ -21,6 +29,10 @@ def login_usuario(request):
         form = LoginUsuarioForm()
     return render(request, 'login.html', {'form': form})
 
+
+# -------------------------------
+# Vista de inicio (requiere login)
+# -------------------------------
 @login_required
 def inicio(request):
     try:
@@ -34,3 +46,30 @@ def inicio(request):
         'rol_usuario': rol_nombre,
     }
     return render(request, 'inicio.html', context)
+
+
+# -------------------------------
+# Verificar si un usuario tiene un permiso específico (JSON)
+# -------------------------------
+def tiene_permisos(request, user_id, permiso_nombre):
+    try:
+        user = UserAuth.objects.get(id=user_id)
+        return JsonResponse({'status': 'success', 'tiene_permiso': user.tiene_permiso(permiso_nombre)})
+    except UserAuth.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Usuario no encontrado'})
+
+
+# -------------------------------
+# Login vía JSON (API básica)
+# -------------------------------
+def iniciar_sesion(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        user = authenticate(request, email=email, password=password)
+        if user is not None:
+            login(request, user)
+            return JsonResponse({'status': 'success'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Credenciales inválidas'})
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'})
