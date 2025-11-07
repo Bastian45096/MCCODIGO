@@ -1,3 +1,7 @@
+import json
+import datetime
+from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.conf import settings
@@ -89,6 +93,8 @@ class Permiso(models.Model):
     nombre = models.CharField(max_length=50)
     descripcion_permiso = models.TextField()
 
+    def Asignar_permisos_a_rol(self, rol, permisos):
+        rol.permisos.add(*permisos)
 
 class RolPermiso(models.Model):
     rol = models.ForeignKey(Rol, on_delete=models.CASCADE)
@@ -100,6 +106,23 @@ class InstrumentoNI(models.Model):
     nombre = models.CharField(max_length=255)
     regla_es = models.TextField()
     estado = models.CharField(max_length=50)
+
+    def Gestionar(self, nombre=None,
+                  regla_es=None,
+                  estado=None):
+        
+        if nombre is not None:
+            self.nombre = nombre
+
+        if regla_es is not None:
+            self.regla_es = regla_es
+
+        if estado is not None:
+            self.estado = estado
+        self.save()
+
+        
+
 
 
 class Factor_Val(models.Model):
@@ -170,9 +193,64 @@ class Calificacion(models.Model):
 
 class CargaMasiva(models.Model):
     id_cm = models.AutoField(primary_key=True)
-    archivo = models.BinaryField()
+    archivo = models.JSONField()
     errores = models.TextField()
     calificacion_calid = models.ForeignKey(Calificacion, on_delete=models.CASCADE)
+
+    @staticmethod
+    def cargar_desde_archivo(json_data, usuario_id):
+        cm = CargaMasiva.objects.create(archivo=json_data)
+        try:
+            cm.validar_archivo()
+            cm._crear_calificaciones(usuario_id)
+        except Exception as e:
+            cm.errores = str(e)
+            cm.save()
+        return cm
+
+    def validar_archivo(self):
+        errores = []
+        for idx, fila in enumerate(self.archivo, start=1):
+            try:
+                float(fila['monto'])
+                int(fila['instrumento_id'])
+                int(fila['factor_val_id'])
+                datetime.datetime.strptime(fila['periodo'], '%Y-%m-%d')
+            except Exception:
+                errores.append({'fila': idx, 'error': 'Datos inválidos'})
+        if errores:
+            self.errores = json.dumps(errores)
+            self.save()
+            raise ValidationError('Archivo con errores')
+
+    @transaction.atomic
+    def _crear_calificaciones(self, usuario_id):
+        usuario = UserAuth.objects.get(pk=usuario_id)
+        fallos = []
+        for idx, fila in enumerate(self.archivo, start=1):
+            try:
+                Calificacion.objects.create(
+                    monto=float(fila['monto']),
+                    factor=float(fila.get('factor', 1)),
+                    periodo=datetime.datetime.strptime(fila['periodo'], '%Y-%m-%d').date(),
+                    instrumento_id=int(fila['instrumento_id']),
+                    estado=fila.get('estado', 'PENDIENTE'),
+                    usuario_id_usuario=usuario,
+                    factor_val_id_factor_id=int(fila['factor_val_id']),
+                    fecha_creacion=datetime.date.today(),
+                    fecha_modificacion=datetime.date.today()
+                )
+            except Exception as e:
+                fallos.append({'fila': idx, 'error': str(e)})
+        if fallos:
+            self.errores = json.dumps(fallos)
+            self.save()
+
+    def generar_informe_errores(self):
+        try:
+            return {'status': 'error', 'errores': json.loads(self.errores)}
+        except (json.JSONDecodeError, TypeError):
+            return {'status': 'ok', 'errores': []}
 
 
 class Busqueda(models.Model):
@@ -194,3 +272,16 @@ class Auditoria(models.Model):
     ip = models.CharField(max_length=255)
     Firma_Digital = models.CharField(max_length=255)
     usuario_id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    @staticmethod
+    def Registrar(accion, tabla, cambios, fecha, ip, firma, usuario):
+        return Auditoria.objects.create(
+            accion = accion,
+            Tabla = tabla,
+            Cambios = cambios,
+            Fecha = fecha,
+            ip = ip,
+            Firma_digital = firma,
+            usuario_id_usuario = usuario
+
+         )
