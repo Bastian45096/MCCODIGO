@@ -5,6 +5,7 @@ from django.db import transaction
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class UserAuthManager(BaseUserManager):
@@ -163,7 +164,7 @@ class Calificacion(models.Model):
         )
     
     def Eliminar_calificacion(self):
-        self.delete
+        self.delete()
 
 
     def Editar_calificacion(self, monto=None,
@@ -281,7 +282,7 @@ class Auditoria(models.Model):
             Cambios = cambios,
             Fecha = fecha,
             ip = ip,
-            Firma_digital = firma,
+            Firma_Digital = firma,
             usuario_id_usuario = usuario
 
          )
