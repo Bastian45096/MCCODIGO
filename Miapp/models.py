@@ -196,11 +196,11 @@ class CargaMasiva(models.Model):
     id_cm = models.AutoField(primary_key=True)
     archivo = models.JSONField()
     errores = models.TextField()
-    calificacion_calid = models.ForeignKey(Calificacion, on_delete=models.CASCADE)
+    calificacion_calid = models.ForeignKey(Calificacion, on_delete=models.CASCADE, null=True, blank=True)
 
     @staticmethod
     def cargar_desde_archivo(json_data, usuario_id):
-        cm = CargaMasiva.objects.create(archivo=json_data)
+        cm = CargaMasiva.objects.create(archivo=json_data, calificacion_calid=None)
         try:
             cm.validar_archivo()
             cm._crear_calificaciones(usuario_id)
@@ -230,6 +230,7 @@ class CargaMasiva(models.Model):
         fallos = []
         for idx, fila in enumerate(self.archivo, start=1):
             try:
+                factor_val = Factor_Val.objects.get(pk=int(fila['factor_val_id']))
                 Calificacion.objects.create(
                     monto=float(fila['monto']),
                     factor=float(fila.get('factor', 1)),
@@ -237,10 +238,12 @@ class CargaMasiva(models.Model):
                     instrumento_id=int(fila['instrumento_id']),
                     estado=fila.get('estado', 'PENDIENTE'),
                     usuario_id_usuario=usuario,
-                    factor_val_id_factor_id=int(fila['factor_val_id']),
+                    factor_val_id_factor=factor_val,
                     fecha_creacion=datetime.date.today(),
                     fecha_modificacion=datetime.date.today()
                 )
+            except Factor_Val.DoesNotExist:
+                fallos.append({'fila': idx, 'error': 'Factor_Val no existe'})
             except Exception as e:
                 fallos.append({'fila': idx, 'error': str(e)})
         if fallos:
