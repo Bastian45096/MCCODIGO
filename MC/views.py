@@ -80,7 +80,7 @@ def inicio(request):
     if perfil and request.method == 'GET' and 'rut' in request.GET:
         rut_input = request.GET.get('rut', '').strip()
         
-        # --- CORRECCIÓN 1: Limpieza Estricta de RUT para Comparación (Soluciona error de coincidencia) ---
+      
         clean_rut_ingresado = re.sub(r'[^0-9kK]', '', rut_input.upper())
         
         if len(clean_rut_ingresado) < 8 or len(clean_rut_ingresado) > 10:
@@ -97,8 +97,8 @@ def inicio(request):
             if clean_rut_bd != clean_rut_ingresado:
                 context['mensaje'] = 'El RUT ingresado no coincide con tu RUT registrado.'
             else:
-                # --- CORRECCIÓN 2: Consulta Restaurada a request.user (UserAuth) ---
-                # Esto evita el ValueError
+                
+                
                 calificaciones_qs = Calificacion.objects.filter(
                     usuario_id_usuario=request.user 
                 ).select_related('instrumento', 'factor_val_id_factor').order_by('-periodo')
