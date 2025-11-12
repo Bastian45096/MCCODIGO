@@ -8,7 +8,7 @@ class NameOrEmailBackend(BaseBackend):
         if not username or not password:
             return None
         try:
-            # Buscar por email o por nombre
+            
             user = User.objects.get(email__iexact=username)
         except User.DoesNotExist:
             try:

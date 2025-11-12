@@ -18,8 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 from . import views
 
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls), 
     path('login/', views.login_usuario, name='login'),
-    path('inicio/', views.inicio, name='inicio'),
+    path('inicio/', views.inicio, name='inicio'),             
+    path('inicioAdmin/', views.inicioAdmin, name='inicioAdmin'),
+    path('inicioOperador/', views.inicioOperador, name='inicioOperador'),
+    path('filtrar-calificaciones/', views.filtrar_calificaciones_por_rut, name='filtrar_calificaciones'),
 ]

@@ -1,13 +1,203 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Inicio - {{ nombre_usuario_login }}</title>
+    <style>
+        /* --- ESTILOS GENERALES Y LAYOUT --- */
+        body { font-family: sans-serif; margin: 0; padding: 0; background: #fff; color: #333; }
+        
+        .header { 
+            background: #E50000;
+            color: white; 
+            padding: 15px 40px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 2px solid black;
+        }
+        .header h1 { 
+            margin: 0; 
+            font-size: 24px; 
+            font-weight: 500;
+        }
+        .header .user-info { 
+            font-size: 18px; 
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .header .logout-btn { 
+            background: #333; 
+            color: white; 
+            padding: 5px 10px; 
+            border: 1px solid white;
+            text-decoration: none; 
+            font-size: 10px;
+        }
+
+        .main-container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        
+        .content-layout { display: flex; flex-direction: column; gap: 30px; } 
+
+        .top-panel { 
+            display: flex; 
+            gap: 20px; 
+            align-items: flex-start;
+        }
+
+        .form-area { 
+            flex: 1; 
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 10px 0;
+        }
+        
+        .results-area {
+            width: 100%;
+            margin-top: 20px; /* Separación de la parte superior */
+        }
+
+        /* --- ESTILOS DE COMPONENTES --- */
+        .card { background: white; padding: 0; box-shadow: none; border-radius: 0; }
+        
+        h2 { color: black; margin: 0 0 10px 0; font-size: 1.2em; font-weight: 600; text-transform: uppercase; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: normal; margin-bottom: 5px; color: black; font-size: 12px; }
+        
+        .form-group input[type="text"] { 
+            width: 100%; 
+            padding: 8px; 
+            font-size: 14px; 
+            border: 1px solid #ccc; 
+            border-radius: 0;
+            box-sizing: border-box; 
+        }
+        
+        .input-group { margin-top: 10px; }
+        .input-group button { 
+            padding: 10px 20px; 
+            background: black; 
+            color: white; 
+            border: none; 
+            border-radius: 0;
+            cursor: pointer; 
+            font-weight: bold; 
+            width: 100%; 
+            font-size: 16px;
+        }
+        .input-group button:hover { background: #333; }
+
+        /* --- MENSAJES --- */
+        .error, .success, .info { 
+            padding: 10px; 
+            margin: 10px 0;
+            border-left: 5px solid; 
+            background: #f9f9f9;
+        }
+        .error { color: #d32f2f; border-color: #d32f2f; }
+        .success { color: #2e7d32; border-color: #2e7d32; }
+        .info { color: #1565c0; border-color: #1565c0; }
+
+        /* --- ESTILOS DE TABLA --- */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { 
+            border: 1px solid #ccc; 
+            padding: 8px; 
+            text-align: left; 
+            font-size: 14px; 
+        }
+        th { background-color: #f0f0f0; font-weight: bold; }
+        
+        .logo-footer { margin-top: 50px; font-weight: bold; font-size: 18px; }
+        .footer-icons { margin-top: 10px; font-size: 20px; color: #555; }
+    </style>
 </head>
 <body>
-
-    <h1>Bienvenido</h1>
     
+    <div class="header">
+        <h1>Nuam</h1>
+        <div class="user-info">BIENVENIDO QUERIDO USUARIO</div>
+        <a href="#" class="logout-btn">CERRAR SESION</a>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="top-panel">
+            
+            <div class="form-area">
+                <div class="card">
+                    <h2>INGRESE SUS DATOS :</h2>
+                    
+                    <form method="GET" action="{% url 'inicio' %}">
+                        {% csrf_token %} 
+                        
+                        <div class="form-group">
+                            <label for="rutInput">RUT:</label>
+                            <input type="text" id="rutInput" name="rut" placeholder="Ej: 12.345.678-5" 
+                                   value="{{ request.GET.rut|default_if_none:'' }}" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <button type="submit">Enviar</button>
+                        </div>
+                    </form>
+                    
+                </div>
+                
+                {% if mensaje %}
+                    <p class="{% if calificaciones %}success{% else %}info{% endif %}">
+                        {% if rut_filtrado and not calificaciones %}
+                            <strong>RUT:</strong> {{ rut_filtrado }} | 
+                        {% endif %} 
+                        {{ mensaje }}
+                    </p>
+                {% endif %}
+            </div>
+            
+        </div>
+        
+        <div class="results-area">
+            {% if calificaciones %}
+            <div class="card">
+                <h2>CALIFICACIONES ENCONTRADAS</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Instrumento</th>
+                            <th>Periodo</th>
+                            <th>Monto</th>
+                            <th>Factor</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for calificacion in calificaciones %}
+                        <tr>
+                            <td>{{ calificacion.instrumento }}</td>
+                            <td>{{ calificacion.periodo }}</td>
+                            <td>{{ calificacion.monto }}</td>
+                            <td>{{ calificacion.factor }}</td>
+                            <td>{{ calificacion.estado }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="logo-footer">Nuam</div>
+        <div class="footer-icons">
+            <span>&#x25A1;</span> 
+            <span>&#x25CB;</span> 
+            <span>&#x25B3;</span> 
+            <span>&#x25C7;</span>
+        </div>
+
+    </div>
 </body>
 </html>

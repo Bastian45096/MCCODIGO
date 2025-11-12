@@ -10,7 +10,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-!_qb-1y0n$k+y9#kkr=x@m57w4k-^$rm5a*v4h@q%1!)he_1z%')
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
@@ -72,7 +72,7 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'Miapp.UserAuth'
@@ -81,17 +81,3 @@ AUTHENTICATION_BACKENDS = [
     'Miapp.back.NameOrEmailBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
-
-# seguridad
-X_FRAME_OPTIONS = 'DENY'
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_SSL_REDIRECT = True
-SECURE_HSTS_SECONDS = 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Strict'
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-CSRF_COOKIE_SECURE = True
