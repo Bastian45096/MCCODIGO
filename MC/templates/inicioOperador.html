@@ -1,15 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Panel Operador - NUAM</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{
+            min-height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background:linear-gradient(to bottom,#a00000 50%,#000 50%);
+            font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+        }
+        .card{
+            width:90%;max-width:420px;
+            background:rgba(0,0,0,.6);
+            border-radius:12px;
+            padding:40px 30px;
+            color:#fff;
+            display:flex;
+            flex-direction:column;
+            gap:20px;
+        }
+        h1{font-size:28px;text-align:center;margin-bottom:10px;}
+        label{font-size:14px;margin-bottom:6px;}
+        input,select{
+            width:100%;height:50px;
+            border:none;border-radius:8px;
+            padding:0 15px;font-size:16px;
+            background:rgba(255,255,255,.1);
+            color:#fff;outline:none;
+        }
+        input::placeholder{color:#ccc;}
+        button{
+            height:50px;border:none;border-radius:8px;
+            font-size:18px;font-weight:bold;cursor:pointer;
+            background:#198754;color:#fff;
+        }
+        button:hover{background:#157347;}
+        @media(max-width:480px){
+            .card{padding:30px 20px;}
+        }
+    </style>
 </head>
 <body>
+<div class="card">
+    <h1>Nuam</h1>
+    <h2 class="text-center mb-3">Crear nueva calificación</h2>
 
-    <h1>Hola señpor Operador</h1>
-    {% csrf_token %}
-    
+    <form method="post" action="{% url 'crear_calificacion' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label>Monto ($)</label>
+            <input type="number" step="0.01" name="monto" required>
+        </div>
+        <div class="mb-3">
+            <label>Factor (%)</label>
+            <input type="number" step="0.01" name="factor" required>
+        </div>
+        <div class="mb-3">
+            <label>Período</label>
+            <input type="month" name="periodo" required>
+        </div>
+        <div class="mb-3">
+            <label>Instrumento</label>
+            <select name="instrumento" required>
+                <option value="">-- Seleccione --</option>
+                {% for i in instrumentos %}
+                    <option value="{{ i.id_instru }}">{{ i.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit">Crear calificación</button>
+    </form>
+</div>
 </body>
 </html>

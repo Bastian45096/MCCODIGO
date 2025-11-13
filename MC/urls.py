@@ -26,4 +26,5 @@ urlpatterns = [
     path('inicioAdmin/', views.inicioAdmin, name='inicioAdmin'),
     path('inicioOperador/', views.inicioOperador, name='inicioOperador'),
     path('filtrar-calificaciones/', views.filtrar_calificaciones_por_rut, name='filtrar_calificaciones'),
+    path('operador/crear-calificacion/', views.crear_calificacion, name='crear_calificacion'),
 ]

@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from Miapp.forms import LoginUsuarioForm
-from Miapp.models import UserAuth, Usuario, Calificacion
+from Miapp.models import UserAuth, Usuario, Calificacion, InstrumentoNI, Factor_Val
 import logging
 import re
 import datetime
@@ -23,17 +23,16 @@ def login_usuario(request):
                 login(request, user)
                 try:
                     perfil = user.perfil
-                    rol = perfil.rol_id.nombre_rol.lower()
+                    rol = perfil.rol_id.nombre_rol
                     nombre_mostrar = user.nombre
                 except Exception:
                     perfil = None
                     rol = 'cliente'
                     nombre_mostrar = user.nombre
-
-                if rol == 'administrador':
+                if rol == 'Administrador':
                     messages.success(request, 'Bienvenido, Administrador')
                     return redirect('inicioAdmin')
-                elif rol == 'operador':
+                elif rol == 'Operador':
                     messages.success(request, 'Bienvenido, Operador')
                     return redirect('inicioOperador')
                 else:
@@ -52,57 +51,43 @@ def inicioAdmin(request):
 
 @login_required
 def inicioOperador(request):
-    return render(request, 'inicioOperador.html')
+    instrumentos = InstrumentoNI.objects.filter(estado='ACTIVO')
+    return render(request, 'inicioOperador.html', {'instrumentos': instrumentos})
 
 @login_required
 def inicio(request):
     perfil = None
     rol_nombre = "Cliente"
     nombre_usuario = request.user.nombre
-    
     calificaciones = []
     mensaje = None
     rut_filtrado = None
-    
     try:
         perfil = request.user.perfil
         rol_nombre = perfil.rol_id.nombre_rol
     except Usuario.DoesNotExist:
         mensaje = "Tu cuenta no tiene un perfil de cliente asociado."
-        
     context = {
         'nombre_usuario_login': nombre_usuario,
         'rol_usuario': rol_nombre,
         'calificaciones': calificaciones,
         'mensaje': mensaje,
     }
-    
     if perfil and request.method == 'GET' and 'rut' in request.GET:
         rut_input = request.GET.get('rut', '').strip()
-        
-      
         clean_rut_ingresado = re.sub(r'[^0-9kK]', '', rut_input.upper())
-        
         if len(clean_rut_ingresado) < 8 or len(clean_rut_ingresado) > 10:
             context['mensaje'] = 'RUT inválido. Por favor, ingrésalo correctamente.'
         else:
-            # Formatea solo para mostrar en la plantilla
             rut_formateado_display = f"{clean_rut_ingresado[:-1]}-{clean_rut_ingresado[-1].upper()}"
             context['rut_filtrado'] = rut_formateado_display
-            
-            # Limpieza del RUT DE LA BD
             clean_rut_bd = re.sub(r'[^0-9kK]', '', perfil.rut.upper())
-            
-            # Comparación de cadenas limpias
             if clean_rut_bd != clean_rut_ingresado:
                 context['mensaje'] = 'El RUT ingresado no coincide con tu RUT registrado.'
             else:
-                
-                
                 calificaciones_qs = Calificacion.objects.filter(
-                    usuario_id_usuario=request.user 
+                    usuario_id_usuario=request.user
                 ).select_related('instrumento', 'factor_val_id_factor').order_by('-periodo')
-                
                 if calificaciones_qs.exists():
                     context['calificaciones'] = [
                         {
@@ -116,7 +101,6 @@ def inicio(request):
                     ]
                 else:
                     context['mensaje'] = 'No se encontraron calificaciones para el RUT ingresado.'
-                    
     return render(request, 'inicio.html', context)
 
 @require_POST
@@ -144,3 +128,28 @@ def iniciar_sesion(request):
     else:
         logger.warning("Login JSON fallido email=%s", email)
         return JsonResponse({'status': 'error', 'message': 'Credenciales inválidas'})
+
+@login_required
+def crear_calificacion(request):
+    if request.method == 'POST':
+        try:
+            monto = float(request.POST.get('monto'))
+            factor = float(request.POST.get('factor'))
+            periodo = datetime.datetime.strptime(request.POST.get('periodo'), '%Y-%m').date()
+            instru = InstrumentoNI.objects.get(pk=request.POST.get('instrumento'))
+            fv = Factor_Val.objects.get(rango_minimo__lte=factor, rango_maximo__gte=factor)
+        except Exception as e:
+            messages.error(request, f'Datos incorrectos: {e}')
+            return redirect('inicioOperador')
+        Calificacion.objects.create(
+            monto=monto,
+            factor=factor,
+            periodo=periodo,
+            instrumento=instru,
+            estado='ACTIVO',
+            usuario_id_usuario=request.user,
+            factor_val_id_factor=fv
+        )
+        messages.success(request, 'Calificación creada correctamente.')
+        return redirect('inicioOperador')
+    return redirect('inicioOperador')
