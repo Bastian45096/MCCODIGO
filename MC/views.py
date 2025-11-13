@@ -5,10 +5,11 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from Miapp.forms import LoginUsuarioForm
-from Miapp.models import UserAuth, Usuario, Calificacion, InstrumentoNI, Factor_Val
+from Miapp.models import UserAuth, Usuario, Calificacion, InstrumentoNI, Factor_Val, CargaMasiva, Rol
 import logging
 import re
 import datetime
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +30,10 @@ def login_usuario(request):
                     perfil = None
                     rol = 'cliente'
                     nombre_mostrar = user.nombre
-                if rol == 'Administrador':
+                if rol.lower() == 'administrador':
                     messages.success(request, 'Bienvenido, Administrador')
                     return redirect('inicioAdmin')
-                elif rol == 'Operador':
+                elif rol.lower() == 'operador':
                     messages.success(request, 'Bienvenido, Operador')
                     return redirect('inicioOperador')
                 else:
@@ -51,8 +52,37 @@ def inicioAdmin(request):
 
 @login_required
 def inicioOperador(request):
-    instrumentos = InstrumentoNI.objects.filter(estado='ACTIVO')
-    return render(request, 'inicioOperador.html', {'instrumentos': instrumentos})
+    instrumentos   = InstrumentoNI.objects.filter(estado='ACTIVO')
+    roles          = Rol.objects.all()
+    usuarios       = Usuario.objects.select_related('user_auth', 'rol_id').filter(activo='S')
+    calificaciones = Calificacion.objects.filter(estado='ACTIVO')
+
+    seccion = request.GET.get('seccion')
+    accion  = request.GET.get('accion')
+    obj_id  = request.GET.get('obj_id')
+
+    obj = None
+
+    # Si estamos en modo editar y ya se seleccionó un registro
+    if seccion == 'calificacion' and accion == 'editar' and obj_id:
+        obj = Calificacion.objects.select_related('instrumento').get(calid=obj_id)
+    elif seccion == 'usuario' and accion == 'editar' and obj_id:
+        obj = Usuario.objects.select_related('rol_id').get(id_usuario=obj_id)
+    elif seccion == 'instrumento' and accion == 'editar' and obj_id:
+        obj = InstrumentoNI.objects.get(id_instru=obj_id)
+    elif seccion == 'rol' and accion == 'editar' and obj_id:
+        obj = Rol.objects.get(id_rol=obj_id)
+
+    return render(request, 'inicioOperador.html', {
+        'instrumentos':   instrumentos,
+        'roles':          roles,
+        'usuarios':       usuarios,
+        'calificaciones': calificaciones,
+        'seccion':        seccion,
+        'accion':         accion,
+        'obj':            obj,
+        'obj_id':         obj_id,
+    })
 
 @login_required
 def inicio(request):
@@ -153,3 +183,124 @@ def crear_calificacion(request):
         messages.success(request, 'Calificación creada correctamente.')
         return redirect('inicioOperador')
     return redirect('inicioOperador')
+
+@login_required
+def carga_masiva(request):
+    if request.method == 'POST' and request.FILES.get('archivo'):
+        try:
+            archivo = request.FILES['archivo']
+            data = json.load(archivo)
+            CargaMasiva.objects.create(archivo=data, errores='')
+            messages.success(request, 'Archivo cargado y registrado.')
+        except Exception as e:
+            messages.error(request, f'Error en el archivo: {e}')
+        return redirect('inicioOperador')
+    return redirect('inicioOperador')
+
+@login_required
+def guardar_calificacion(request):
+    if request.method == 'POST':
+        try:
+            monto   = float(request.POST.get('monto'))
+            factor  = float(request.POST.get('factor'))
+            periodo = datetime.datetime.strptime(request.POST.get('periodo'), '%Y-%m').date()
+            instru  = InstrumentoNI.objects.get(pk=request.POST.get('instrumento'))
+            fv      = Factor_Val.objects.get(rango_minimo__lte=factor, rango_maximo__gte=factor)
+            Calificacion.objects.create(
+                monto=monto, factor=factor, periodo=periodo,
+                instrumento=instru, estado='ACTIVO',
+                usuario_id_usuario=request.user,
+                factor_val_id_factor=fv)
+            messages.success(request, 'Calificación guardada.')
+        except Exception as e:
+            messages.error(request, f'Error: {e}')
+        return redirect('inicioOperador')
+    return redirect('inicioOperador')
+
+@login_required
+def guardar_usuario(request):
+    if request.method == 'POST':
+        try:
+            nombre   = request.POST.get('nombre')
+            rut      = request.POST.get('rut')
+            email    = request.POST.get('email')
+            rol_id   = request.POST.get('rol')
+            user = UserAuth.objects.create_user(
+                nombre=nombre,
+                email=email,
+                password=rut
+            )
+            usuario = Usuario.objects.create(
+                user_auth=user,
+                nombre=nombre,
+                rol_id_id=rol_id,
+                activo='S'
+            )
+            usuario.set_rut(rut)
+            usuario.email = email
+            usuario.save()
+            messages.success(request, 'Usuario actualizado.')
+        except Exception as e:
+            messages.error(request, f'Error: {e}')
+        return redirect('inicioOperador')
+    return redirect('inicioOperador')
+
+@login_required
+def guardar_instrumento(request):
+    if request.method == 'POST':
+        try:
+            pk       = request.POST.get('id_instru')
+            nombre   = request.POST.get('nombre')
+            regla_es = request.POST.get('regla_es')
+            estado   = request.POST.get('estado')
+            if pk:
+                InstrumentoNI.objects.filter(pk=pk).update(
+                    nombre=nombre,
+                    regla_es=regla_es,
+                    estado=estado
+                )
+                messages.success(request, 'Instrumento actualizado.')
+            else:
+                InstrumentoNI.objects.create(
+                    nombre=nombre,
+                    regla_es=regla_es,
+                    estado=estado
+                )
+                messages.success(request, 'Instrumento creado.')
+        except Exception as e:
+            messages.error(request, f'Error: {e}')
+        return redirect('inicioOperador')
+    return redirect('inicioOperador')
+
+@login_required
+def guardar_rol(request):
+    if request.method == 'POST':
+        try:
+            pk          = request.POST.get('id_rol')
+            nombre      = request.POST.get('nombre_rol')
+            descripcion = request.POST.get('descripcion_rol')
+            if pk:
+                Rol.objects.filter(pk=pk).update(
+                    nombre_rol=nombre,
+                    descripcion_rol=descripcion
+                )
+                messages.success(request, 'Rol actualizado.')
+            else:
+                Rol.objects.create(
+                    nombre_rol=nombre,
+                    descripcion_rol=descripcion
+                )
+                messages.success(request, 'Rol creado.')
+        except Exception as e:
+            messages.error(request, f'Error: {e}')
+        return redirect('inicioOperador')
+    return redirect('inicioOperador')
+
+@login_required
+def filtrar_calificaciones(request):
+    rut = request.GET.get('rut')
+    qs  = Calificacion.objects.filter(
+        usuario_id_usuario__perfil__rut=rut,
+        estado='ACTIVO'
+    ).select_related('instrumento')
+    return render(request, 'filtrar_resultado.html', {'calificaciones': qs})

@@ -1,79 +1,385 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Panel Operador - NUAM</title>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box;}
-        body{
-            min-height:100vh;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            background:linear-gradient(to bottom,#a00000 50%,#000 50%);
-            font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
-        }
-        .card{
-            width:90%;max-width:420px;
-            background:rgba(0,0,0,.6);
-            border-radius:12px;
-            padding:40px 30px;
-            color:#fff;
-            display:flex;
-            flex-direction:column;
-            gap:20px;
-        }
-        h1{font-size:28px;text-align:center;margin-bottom:10px;}
-        label{font-size:14px;margin-bottom:6px;}
-        input,select{
-            width:100%;height:50px;
-            border:none;border-radius:8px;
-            padding:0 15px;font-size:16px;
-            background:rgba(255,255,255,.1);
-            color:#fff;outline:none;
-        }
-        input::placeholder{color:#ccc;}
-        button{
-            height:50px;border:none;border-radius:8px;
-            font-size:18px;font-weight:bold;cursor:pointer;
-            background:#198754;color:#fff;
-        }
-        button:hover{background:#157347;}
-        @media(max-width:480px){
-            .card{padding:30px 20px;}
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Panel Operador - NUAM</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    html,body{height:100%;}
+    body{
+      display:flex;
+      background:linear-gradient(to bottom,#a00000 50%,#000 50%);
+      font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+    }
+    .left-box{
+      width:320px;height:100vh;
+      background:rgba(0,0,0,.7);
+      color:#fff;
+      padding:30px 20px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .left-box h3{font-size:18px;margin-bottom:10px;}
+    .btn-group{display:flex;gap:6px;}
+    .btn{
+      flex:1;height:36px;border:none;border-radius:6px;
+      font-size:14px;font-weight:bold;cursor:pointer;
+    }
+    .btn-outline-light{
+      background:transparent;color:#fff;border:1px solid #fff;
+    }
+    .btn-outline-light:hover{background:#fff;color:#000;}
+    .right-box{
+      flex:1;display:flex;align-items:flex-start;justify-content:center;
+      padding:40px 20px;
+    }
+    .card{
+      width:90%;max-width:420px;
+      background:rgba(0,0,0,.6);
+      border-radius:12px;padding:30px;
+      color:#fff;display:flex;flex-direction:column;gap:15px;
+    }
+    .card h2{font-size:22px;text-align:center;margin-bottom:10px;}
+    label{font-size:14px;margin-bottom:4px;}
+    input,select,textarea{
+      width:100%;height:48px;border:none;border-radius:8px;
+      padding:0 15px;font-size:16px;
+      background:rgba(255,255,255,.1);color:#fff;outline:none;
+    }
+    input::placeholder{color:#ccc;}
+    .btn-success{width:100%;height:48px;border:none;border-radius:8px;
+                 font-size:16px;font-weight:bold;cursor:pointer;
+                 background:#198754;color:#fff;}
+    .btn-success:hover{background:#157347;}
+
+    /* Estilo tipo tabla SQL */
+    .sql-table {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sql-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      transition: background 0.3s ease;
+    }
+
+    .sql-row:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .sql-cell {
+      flex: 1;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .sql-action {
+      margin-left: 20px;
+    }
+
+    .btn-edit {
+      background-color: #0dcaf0;
+      color: #000;
+      padding: 6px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+
+    .btn-edit:hover {
+      background-color: #0aa5c0;
+    }
+
+    @media(max-width:768px){
+      body{flex-direction:column;}
+      .left-box{width:100%;height:auto;}
+    }
+  </style>
 </head>
 <body>
-<div class="card">
-    <h1>Nuam</h1>
-    <h2 class="text-center mb-3">Crear nueva calificación</h2>
 
-    <form method="post" action="{% url 'crear_calificacion' %}">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label>Monto ($)</label>
-            <input type="number" step="0.01" name="monto" required>
-        </div>
-        <div class="mb-3">
-            <label>Factor (%)</label>
-            <input type="number" step="0.01" name="factor" required>
-        </div>
-        <div class="mb-3">
-            <label>Período</label>
-            <input type="month" name="periodo" required>
-        </div>
-        <div class="mb-3">
-            <label>Instrumento</label>
-            <select name="instrumento" required>
-                <option value="">-- Seleccione --</option>
-                {% for i in instrumentos %}
-                    <option value="{{ i.id_instru }}">{{ i.nombre }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <button type="submit">Crear calificación</button>
-    </form>
+<div class="left-box">
+  <h3>Opciones</h3>
+
+  <div class="btn-group">
+    <a href="?seccion=calificacion&accion=crear" class="btn btn-outline-light">Crear Calificación</a>
+    <a href="?seccion=calificacion&accion=editar" class="btn btn-outline-light">Editar Calificación</a>
+  </div>
+
+  <div class="btn-group">
+    <a href="?seccion=usuario&accion=crear" class="btn btn-outline-light">Crear Usuario</a>
+    <a href="?seccion=usuario&accion=editar" class="btn btn-outline-light">Editar Usuario</a>
+  </div>
+
+  <div class="btn-group">
+    <a href="?seccion=instrumento&accion=crear" class="btn btn-outline-light">Crear Instrumento</a>
+    <a href="?seccion=instrumento&accion=editar" class="btn btn-outline-light">Editar Instrumento</a>
+  </div>
+
+  <div class="btn-group">
+    <a href="?seccion=rol&accion=crear" class="btn btn-outline-light">Crear Rol</a>
+    <a href="?seccion=rol&accion=editar" class="btn btn-outline-light">Editar Rol</a>
+  </div>
+
+  <div class="btn-group">
+    <a href="?seccion=filtrar" class="btn btn-outline-light">Filtrar Calificaciones</a>
+  </div>
+
+  <h3 class="mt-4">Carga masiva</h3>
+  <form method="post" action="{% url 'carga_masiva' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="archivo" accept=".json,.csv" required>
+    <button type="submit" class="btn btn-outline-light mt-2">Subir archivo</button>
+  </form>
 </div>
+
+<div class="right-box">
+  {% if seccion == 'calificacion' and accion == 'crear' %}
+    <div class="card">
+      <h2>Crear Calificación</h2>
+      <form method="post" action="{% url 'guardar_calificacion' %}">
+        {% csrf_token %}
+        <label>Monto ($)</label>
+        <input type="number" step="0.01" name="monto" required>
+        <label>Factor (%)</label>
+        <input type="number" step="0.01" name="factor" required>
+        <label>Período</label>
+        <input type="month" name="periodo" required>
+        <label>Instrumento</label>
+        <select name="instrumento" required>
+          <option value="">-- Seleccione --</option>
+          {% for i in instrumentos %}
+            <option value="{{ i.id_instru }}">{{ i.nombre }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn-success mt-3">Crear Calificación</button>
+      </form>
+    </div>
+
+  {% elif seccion == 'calificacion' and accion == 'editar' and not obj_id %}
+    <div class="card">
+      <h2>Seleccione una Calificación para Editar</h2>
+      <div class="sql-table">
+        {% for c in calificaciones %}
+          <div class="sql-row">
+            <div class="sql-cell">
+              <strong>Instrumento:</strong> {{ c.instrumento.nombre }}<br>
+              <strong>Período:</strong> {{ c.periodo|date:"m/Y" }}<br>
+              <strong>Monto:</strong> ${{ c.monto|floatformat:0 }}
+            </div>
+            <div class="sql-action">
+              <a class="btn-edit" href="?seccion=calificacion&accion=editar&obj_id={{ c.calid }}">Editar</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  {% elif seccion == 'calificacion' and accion == 'editar' and obj_id %}
+    <div class="card">
+      <h2>Editar Calificación</h2>
+      <form method="post" action="{% url 'guardar_calificacion' %}">
+        {% csrf_token %}
+        <input type="hidden" name="calid" value="{{ obj.calid }}">
+        <label>Monto ($)</label>
+        <input type="number" step="0.01" name="monto" value="{{ obj.monto }}" required>
+        <label>Factor (%)</label>
+        <input type="number" step="0.01" name="factor" value="{{ obj.factor }}" required>
+        <label>Período</label>
+        <input type="month" name="periodo" value="{{ obj.periodo|date:'Y-m' }}" required>
+        <label>Instrumento</label>
+        <select name="instrumento" required>
+          {% for i in instrumentos %}
+            <option value="{{ i.id_instru }}" {% if obj.instrumento.id_instru == i.id_instru %}selected{% endif %}>{{ i.nombre }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn-success mt-3">Guardar cambios</button>
+      </form>
+    </div>
+
+  {% elif seccion == 'usuario' and accion == 'crear' %}
+    <div class="card">
+      <h2>Crear Usuario</h2>
+      <form method="post" action="{% url 'guardar_usuario' %}">
+        {% csrf_token %}
+        <label>Nombre</label>
+        <input type="text" name="nombre" required>
+        <label>RUT (sin puntos, con guión)</label>
+        <input type="text" name="rut" required>
+        <label>Email</label>
+        <input type="email" name="email" required>
+        <label>Rol</label>
+        <select name="rol" required>
+          {% for r in roles %}
+            <option value="{{ r.id_rol }}">{{ r.nombre_rol }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn-success mt-3">Crear Usuario</button>
+      </form>
+    </div>
+
+  {% elif seccion == 'usuario' and accion == 'editar' and not obj_id %}
+    <div class="card">
+      <h2>Seleccione un Usuario para Editar</h2>
+      <div class="sql-table">
+        {% for u in usuarios %}
+          <div class="sql-row">
+            <div class="sql-cell">
+              <strong>Nombre:</strong> {{ u.nombre }}<br>
+              <strong>RUT:</strong> {{ u.rut }}<br>
+              <strong>Rol:</strong> {{ u.rol_id.nombre_rol }}
+            </div>
+            <div class="sql-action">
+              <a class="btn-edit" href="?seccion=usuario&accion=editar&obj_id={{ u.id_usuario }}">Editar</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  {% elif seccion == 'usuario' and accion == 'editar' and obj_id %}
+    <div class="card">
+      <h2>Editar Usuario</h2>
+      <form method="post" action="{% url 'guardar_usuario' %}">
+        {% csrf_token %}
+        <input type="hidden" name="id_usuario" value="{{ obj.id_usuario }}">
+        <label>Nombre</label>
+        <input type="text" name="nombre" value="{{ obj.nombre }}" required>
+        <label>RUT</label>
+        <input type="text" name="rut" value="{{ obj.rut }}" required>
+        <label>Email</label>
+        <input type="email" name="email" value="{{ obj.email }}" required>
+        <label>Rol</label>
+        <select name="rol" required>
+          {% for r in roles %}
+            <option value="{{ r.id_rol }}" {% if obj.rol_id.id_rol == r.id_rol %}selected{% endif %}>{{ r.nombre_rol }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn-success mt-3">Guardar cambios</button>
+      </form>
+    </div>
+
+  {% elif seccion == 'instrumento' and accion == 'crear' %}
+    <div class="card">
+      <h2>Crear Instrumento</h2>
+      <form method="post" action="{% url 'guardar_instrumento' %}">
+        {% csrf_token %}
+        <label>Nombre</label>
+        <input type="text" name="nombre" required>
+        <label>Regla</label>
+        <textarea name="regla_es" class="form-control" rows="3" required></textarea>
+        <label>Estado</label>
+        <select name="estado" required>
+          <option value="ACTIVO">ACTIVO</option>
+          <option value="INACTIVO">INACTIVO</option>
+        </select>
+        <button type="submit" class="btn-success mt-3">Crear Instrumento</button>
+      </form>
+    </div>
+
+  {% elif seccion == 'instrumento' and accion == 'editar' and not obj_id %}
+    <div class="card">
+      <h2>Seleccione un Instrumento para Editar</h2>
+      <div class="sql-table">
+        {% for i in instrumentos %}
+          <div class="sql-row">
+            <div class="sql-cell">
+              <strong>Nombre:</strong> {{ i.nombre }}<br>
+              <strong>Estado:</strong> {{ i.estado }}
+            </div>
+            <div class="sql-action">
+              <a class="btn-edit" href="?seccion=instrumento&accion=editar&obj_id={{ i.id_instru }}">Editar</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  {% elif seccion == 'instrumento' and accion == 'editar' and obj_id %}
+    <div class="card">
+      <h2>Editar Instrumento</h2>
+      <form method="post" action="{% url 'guardar_instrumento' %}">
+        {% csrf_token %}
+        <input type="hidden" name="id_instru" value="{{ obj.id_instru }}">
+        <label>Nombre</label>
+        <input type="text" name="nombre" value="{{ obj.nombre }}" required>
+        <label>Regla</label>
+        <textarea name="regla_es" class="form-control" rows="3" required>{{ obj.regla_es }}</textarea>
+        <label>Estado</label>
+        <select name="estado" required>
+          <option value="ACTIVO" {% if obj.estado == 'ACTIVO' %}selected{% endif %}>ACTIVO</option>
+          <option value="INACTIVO" {% if obj.estado == 'INACTIVO' %}selected{% endif %}>INACTIVO</option>
+        </select>
+        <button type="submit" class="btn-success mt-3">Guardar cambios</button>
+      </form>
+    </div>
+
+  {% elif seccion == 'rol' and accion == 'crear' %}
+    <div class="card">
+      <h2>Crear Rol</h2>
+      <form method="post" action="{% url 'guardar_rol' %}">
+        {% csrf_token %}
+        <label>Nombre del Rol</label>
+        <input type="text" name="nombre_rol" required>
+        <label>Descripción</label>
+        <textarea name="descripcion_rol" class="form-control" rows="3" required></textarea>
+        <button type="submit" class="btn-success mt-3">Crear Rol</button>
+      </form>
+    </div>
+
+  {% elif seccion == 'rol' and accion == 'editar' and not obj_id %}
+    <div class="card">
+      <h2>Seleccione un Rol para Editar</h2>
+      <div class="sql-table">
+        {% for r in roles %}
+          <div class="sql-row">
+            <div class="sql-cell">
+              <strong>Rol:</strong> {{ r.nombre_rol }}<br>
+              <strong>Descripción:</strong> {{ r.descripcion_rol|truncatewords:10 }}
+            </div>
+            <div class="sql-action">
+              <a class="btn-edit" href="?seccion=rol&accion=editar&obj_id={{ r.id_rol }}">Editar</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  {% elif seccion == 'rol' and accion == 'editar' and obj_id %}
+    <div class="card">
+      <h2>Editar Rol</h2>
+      <form method="post" action="{% url 'guardar_rol' %}">
+        {% csrf_token %}
+        <input type="hidden" name="id_rol" value="{{ obj.id_rol }}">
+        <label>Nombre del Rol</label>
+        <input type="text" name="nombre_rol" value="{{ obj.nombre_rol }}" required>
+        <label>Descripción</label>
+        <textarea name="descripcion_rol" class="form-control" rows="3" required>{{ obj.descripcion_rol }}</textarea>
+        <button type="submit" class="btn-success mt-3">Guardar cambios</button>
+      </form>
+    </div>
+
+  {% elif seccion == 'filtrar' %}
+    <div class="card">
+      <h2>Filtrar Calificaciones por RUT</h2>
+      <form method="get" action="{% url 'filtrar_calificaciones' %}">
+        <label>Ingrese RUT (sin puntos, con guión)</label>
+        <input type="text" name="rut" required>
+        <button type="submit" class="btn-success mt-3">Buscar</button>
+      </form>
+    </div>
+  {% endif %}
+</div>
+
 </body>
 </html>

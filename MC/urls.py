@@ -20,11 +20,17 @@ from . import views
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls), 
+    path('admin/', admin.site.urls),
     path('login/', views.login_usuario, name='login'),
-    path('inicio/', views.inicio, name='inicio'),             
+    path('inicio/', views.inicio, name='inicio'),
     path('inicioAdmin/', views.inicioAdmin, name='inicioAdmin'),
     path('inicioOperador/', views.inicioOperador, name='inicioOperador'),
     path('filtrar-calificaciones/', views.filtrar_calificaciones_por_rut, name='filtrar_calificaciones'),
     path('operador/crear-calificacion/', views.crear_calificacion, name='crear_calificacion'),
+    path('operador/carga-masiva/', views.carga_masiva, name='carga_masiva'),
+    path('operador/guardar-calificacion/', views.guardar_calificacion, name='guardar_calificacion'),
+    path('operador/guardar-usuario/', views.guardar_usuario, name='guardar_usuario'),
+    path('operador/guardar-instrumento/', views.guardar_instrumento, name='guardar_instrumento'),
+    path('operador/guardar-rol/', views.guardar_rol, name='guardar_rol'),
+    path('operador/filtrar-calificaciones/', views.filtrar_calificaciones, name='filtrar_calificaciones'),
 ]
