@@ -33,4 +33,13 @@ urlpatterns = [
     path('operador/guardar-instrumento/', views.guardar_instrumento, name='guardar_instrumento'),
     path('operador/guardar-rol/', views.guardar_rol, name='guardar_rol'),
     path('operador/filtrar-calificaciones/', views.filtrar_calificaciones, name='filtrar_calificaciones'),
+
+    
+    path('admin/eliminar-calificacion/<int:calid>/', views.eliminar_calificacion, name='eliminar_calificacion'),
+    path('admin/eliminar-usuario/<int:id_usuario>/', views.eliminar_usuario, name='eliminar_usuario'),
+    path('admin/eliminar-instrumento/<int:id_instru>/', views.eliminar_instrumento, name='eliminar_instrumento'),
+    path('admin/eliminar-rol/<int:id_rol>/', views.eliminar_rol, name='eliminar_rol'),
+    path('admin/guardar-permiso/', views.guardar_permiso, name='guardar_permiso'),
+    path('admin/eliminar-permiso/<int:id_permiso>/', views.eliminar_permiso, name='eliminar_permiso'),
+        path('admin/visualizar-usuarios/', views.visualizar_usuarios, name='visualizar_usuarios'),
 ]

@@ -1,14 +1,314 @@
-<!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <title>Panel Administrador - NUAM</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    html,body{height:100%;}
+    body{
+      display:flex;
+      background:linear-gradient(to bottom,#a00000 50%,#000 50%);
+      font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+    }
+    .left-box{
+      width:320px;height:100vh;
+      background:rgba(0,0,0,.7);
+      color:#fff;
+      padding:30px 20px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .left-box h3{font-size:18px;margin-bottom:10px;}
+    .btn-group{display:flex;gap:6px;}
+    .btn{
+      flex:1;height:36px;border:none;border-radius:6px;
+      font-size:14px;font-weight:bold;cursor:pointer;
+    }
+    .btn-outline-light{
+      background:transparent;color:#fff;border:1px solid #fff;
+    }
+    .btn-outline-light:hover{background:#fff;color:#000;}
+    .right-box{
+      flex:1;display:flex;align-items:flex-start;justify-content:center;
+      padding:40px 20px;
+    }
+    .card{
+      width:90%;max-width:420px;
+      background:rgba(0,0,0,.6);
+      border-radius:12px;padding:30px;
+      color:#fff;display:flex;flex-direction:column;gap:15px;
+    }
+    .card h2{font-size:22px;text-align:center;margin-bottom:10px;}
+    label{font-size:14px;margin-bottom:4px;}
+    input,select,textarea{
+      width:100%;height:48px;border:none;border-radius:8px;
+      padding:0 15px;font-size:16px;
+      background:rgba(255,255,255,.1);color:#fff;outline:none;
+    }
+    input::placeholder{color:#ccc;}
+    .btn-success{width:100%;height:48px;border:none;border-radius:8px;
+                 font-size:16px;font-weight:bold;cursor:pointer;
+                 background:#198754;color:#fff;}
+    .btn-success:hover{background:#157347;}
+
+    .btn-danger {
+      background-color: #dc3545;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .btn-danger:hover {
+      background-color: #c82333;
+    }
+
+    .sql-table {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sql-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      transition: background 0.3s ease;
+    }
+
+    .sql-row:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .sql-cell {
+      flex: 1;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .sql-action {
+      display: flex;
+      gap: 10px;
+    }
+
+    @media(max-width:768px){
+      body{flex-direction:column;}
+      .left-box{width:100%;height:auto;}
+    }
+  </style>
 </head>
 <body>
 
-    <h1>Hola señor Administrador </h1>
+<div class="left-box">
+  <h3>Admin - Opciones</h3>
+
+  <div class="btn-group">
+    <a href="?seccion=calificacion&accion=crear" class="btn btn-outline-light">Crear Calificación</a>
+    <a href="?seccion=calificacion&accion=editar" class="btn btn-outline-light">Editar Calificación</a>
+  </div>
+
+  <div class="btn-group">
+    <a href="?seccion=usuario&accion=crear" class="btn btn-outline-light">Crear Usuario</a>
+    <a href="?seccion=usuario&accion=editar" class="btn btn-outline-light">Editar Usuario</a>
+  </div>
+
+  <div class="btn-group">
+    <a href="?seccion=instrumento&accion=crear" class="btn btn-outline-light">Crear Instrumento</a>
+    <a href="?seccion=instrumento&accion=editar" class="btn btn-outline-light">Editar Instrumento</a>
+  </div>
+
+  <div class="btn-group">
+    <a href="?seccion=rol&accion=crear" class="btn btn-outline-light">Crear Rol</a>
+    <a href="?seccion=rol&accion=editar" class="btn btn-outline-light">Editar Rol</a>
+  </div>
+
+  <div class="btn-group">
+    <a href="?seccion=permiso&accion=crear" class="btn btn-outline-light">Crear Permiso</a>
+    <a href="?seccion=permiso&accion=editar" class="btn btn-outline-light">Editar Permiso</a>
+  </div>
+
+  <div class="btn-group">
+    <a href="?seccion=filtrar" class="btn btn-outline-light">Filtrar Calificaciones</a>
+  </div>
+
+  <div class="btn-group">
+    <a href="{% url 'visualizar_usuarios' %}" class="btn btn-outline-light">Visualización de Usuarios</a>
+  </div>
+
+
+  <h3 class="mt-4">Carga masiva</h3>
+  <form method="post" action="{% url 'carga_masiva' %}" enctype="multipart/form-data">
     {% csrf_token %}
+    <input type="file" name="archivo" accept=".json,.csv" required>
+    <button type="submit" class="btn btn-outline-light mt-2">Subir archivo</button>
+  </form>
+</div>
+
+<div class="right-box">
+  {% if seccion == 'calificacion' and accion == 'crear' %}
+    <div class="card">
+      <h2>Crear Calificación</h2>
+      <form method="post" action="{% url 'guardar_calificacion' %}">
+        {% csrf_token %}
+        <label>Monto ($)</label>
+        <input type="number" step="0.01" name="monto" required>
+        <label>Factor (%)</label>
+        <input type="number" step="0.01" name="factor" required>
+        <label>Período</label>
+        <input type="month" name="periodo" required>
+        <label>Instrumento</label>
+        <select name="instrumento" required>
+          <option value="">-- Seleccione --</option>
+          {% for i in instrumentos %}
+            <option value="{{ i.id_instru }}">{{ i.nombre }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn-success mt-3">Crear Calificación</button>
+      </form>
+    </div>
+
+  {% elif seccion == 'calificacion' and accion == 'editar' and not obj_id %}
+    <div class="card">
+      <h2>Seleccione una Calificación para Editar</h2>
+      <div class="sql-table">
+        {% for c in calificaciones %}
+          <div class="sql-row">
+            <div class="sql-cell">
+              <strong>Instrumento:</strong> {{ c.instrumento.nombre }}<br>
+              <strong>Período:</strong> {{ c.periodo|date:"m/Y" }}<br>
+              <strong>Monto:</strong> ${{ c.monto|floatformat:0 }}
+            </div>
+            <div class="sql-action">
+              <a class="btn-edit" href="?seccion=calificacion&accion=editar&obj_id={{ c.calid }}">Editar</a>
+              <a class="btn-danger" href="{% url 'eliminar_calificacion' c.calid %}" onclick="return confirm('¿Estás seguro de eliminar esta calificación?')">Eliminar</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  {% elif seccion == 'usuario' and accion == 'editar' and not obj_id %}
+    <div class="card">
+      <h2>Seleccione un Usuario para Editar</h2>
+      <div class="sql-table">
+        {% for u in usuarios %}
+          <div class="sql-row">
+            <div class="sql-cell">
+              <strong>Nombre:</strong> {{ u.nombre }}<br>
+              <strong>RUT:</strong> {{ u.rut }}<br>
+              <strong>Rol:</strong> {{ u.rol_id.nombre_rol }}
+            </div>
+            <div class="sql-action">
+              <a class="btn-edit" href="?seccion=usuario&accion=editar&obj_id={{ u.id_usuario }}">Editar</a>
+              <a class="btn-danger" href="{% url 'eliminar_usuario' u.id_usuario %}" onclick="return confirm('¿Estás seguro de eliminar este usuario?')">Eliminar</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  {% elif seccion == 'instrumento' and accion == 'editar' and not obj_id %}
+    <div class="card">
+      <h2>Seleccione un Instrumento para Editar</h2>
+      <div class="sql-table">
+        {% for i in instrumentos %}
+          <div class="sql-row">
+            <div class="sql-cell">
+              <strong>Nombre:</strong> {{ i.nombre }}<br>
+              <strong>Estado:</strong> {{ i.estado }}
+            </div>
+            <div class="sql-action">
+              <a class="btn-edit" href="?seccion=instrumento&accion=editar&obj_id={{ i.id_instru }}">Editar</a>
+              <a class="btn-danger" href="{% url 'eliminar_instrumento' i.id_instru %}" onclick="return confirm('¿Estás seguro de eliminar este instrumento?')">Eliminar</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  {% elif seccion == 'rol' and accion == 'editar' and not obj_id %}
+    <div class="card">
+      <h2>Seleccione un Rol para Editar</h2>
+      <div class="sql-table">
+        {% for r in roles %}
+          <div class="sql-row">
+            <div class="sql-cell">
+              <strong>Rol:</strong> {{ r.nombre_rol }}<br>
+              <strong>Descripción:</strong> {{ r.descripcion_rol|truncatewords:10 }}
+            </div>
+            <div class="sql-action">
+              <a class="btn-edit" href="?seccion=rol&accion=editar&obj_id={{ r.id_rol }}">Editar</a>
+              <a class="btn-danger" href="{% url 'eliminar_rol' r.id_rol %}" onclick="return confirm('¿Estás seguro de eliminar este rol?')">Eliminar</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  {% elif seccion == 'permiso' and accion == 'crear' %}
+    <div class="card">
+      <h2>Crear Permiso</h2>
+      <form method="post" action="{% url 'guardar_permiso' %}">
+        {% csrf_token %}
+        <label>Nombre del Permiso</label>
+        <input type="text" name="nombre" required>
+        <label>Descripción</label>
+        <textarea name="descripcion" class="form-control" rows="3" required></textarea>
+        <button type="submit" class="btn-success mt-3">Crear Permiso</button>
+      </form>
+    </div>
+
+  {% elif seccion == 'permiso' and accion == 'editar' and not obj_id %}
+    <div class="card">
+      <h2>Seleccione un Permiso para Editar</h2>
+      <div class="sql-table">
+        {% for p in permisos %}
+          <div class="sql-row">
+            <div class="sql-cell">
+              <strong>Permiso:</strong> {{ p.nombre }}<br>
+              <strong>Descripción:</strong> {{ p.descripcion_permiso|truncatewords:10 }}
+            </div>
+            <div class="sql-action">
+              <a class="btn-edit" href="?seccion=permiso&accion=editar&obj_id={{ p.id_permiso }}">Editar</a>
+              <a class="btn-danger" href="{% url 'eliminar_permiso' p.id_permiso %}" onclick="return confirm('¿Estás seguro de eliminar este permiso?')">Eliminar</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  {% elif seccion == 'permiso' and accion == 'editar' and obj_id %}
+    <div class="card">
+      <h2>Editar Permiso</h2>
+      <form method="post" action="{% url 'guardar_permiso' %}">
+        {% csrf_token %}
+        <input type="hidden" name="id_permiso" value="{{ obj.id_permiso }}">
+        <label>Nombre del Permiso</label>
+        <input type="text" name="nombre" value="{{ obj.nombre }}" required>
+        <label>Descripción</label>
+        <textarea name="descripcion" class="form-control" rows="3" required>{{ obj.descripcion_permiso }}</textarea>
+        <button type="submit" class="btn-success mt-3">Guardar cambios</button>
+      </form>
+    </div>
+
+  {% elif seccion == 'filtrar' %}
+    <div class="card">
+      <h2>Filtrar Calificaciones por RUT</h2>
+      <form method="get" action="{% url 'filtrar_calificaciones' %}">
+        <label>Ingrese RUT (sin puntos, con guión)</label>
+        <input type="text" name="rut" required>
+        <button type="submit" class="btn-success mt-3">Buscar</button>
+      </form>
+    </div>
+  {% endif %}
+</div>
+
 </body>
 </html>

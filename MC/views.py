@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from Miapp.forms import LoginUsuarioForm
-from Miapp.models import UserAuth, Usuario, Calificacion, InstrumentoNI, Factor_Val, CargaMasiva, Rol
+from Miapp.models import UserAuth, Usuario, Calificacion, InstrumentoNI, Factor_Val, CargaMasiva, Rol, Permiso
 import logging
 import re
 import datetime
@@ -63,7 +63,7 @@ def inicioOperador(request):
 
     obj = None
 
-    # Si estamos en modo editar y ya se seleccionó un registro
+   
     if seccion == 'calificacion' and accion == 'editar' and obj_id:
         obj = Calificacion.objects.select_related('instrumento').get(calid=obj_id)
     elif seccion == 'usuario' and accion == 'editar' and obj_id:
@@ -297,6 +297,91 @@ def guardar_rol(request):
     return redirect('inicioOperador')
 
 @login_required
+def inicioAdmin(request):
+    instrumentos   = InstrumentoNI.objects.filter(estado='ACTIVO')
+    roles          = Rol.objects.all()
+    usuarios       = Usuario.objects.select_related('user_auth', 'rol_id').filter(activo='S')
+    calificaciones = Calificacion.objects.filter(estado='ACTIVO')
+    permisos       = Permiso.objects.all()
+
+    seccion = request.GET.get('seccion')
+    accion  = request.GET.get('accion')
+    obj_id  = request.GET.get('obj_id')
+
+    obj = None
+
+    if seccion == 'calificacion' and accion == 'editar' and obj_id:
+        obj = Calificacion.objects.select_related('instrumento').get(calid=obj_id)
+    elif seccion == 'usuario' and accion == 'editar' and obj_id:
+        obj = Usuario.objects.select_related('rol_id').get(id_usuario=obj_id)
+    elif seccion == 'instrumento' and accion == 'editar' and obj_id:
+        obj = InstrumentoNI.objects.get(id_instru=obj_id)
+    elif seccion == 'rol' and accion == 'editar' and obj_id:
+        obj = Rol.objects.get(id_rol=obj_id)
+    elif seccion == 'permiso' and accion == 'editar' and obj_id:
+        obj = Permiso.objects.get(id_permiso=obj_id)
+
+    return render(request, 'inicioAdmin.html', {
+        'instrumentos':   instrumentos,
+        'roles':          roles,
+        'usuarios':       usuarios,
+        'calificaciones': calificaciones,
+        'permisos':       permisos,
+        'seccion':        seccion,
+        'accion':         accion,
+        'obj':            obj,
+        'obj_id':         obj_id,
+    })
+
+@login_required
+def eliminar_calificacion(request, calid):
+    Calificacion.objects.filter(calid=calid).delete()
+    messages.success(request, 'Calificación eliminada.')
+    return redirect('inicioAdmin')
+
+@login_required
+def eliminar_usuario(request, id_usuario):
+    Usuario.objects.filter(id_usuario=id_usuario).delete()
+    messages.success(request, 'Usuario eliminado.')
+    return redirect('inicioAdmin')
+
+@login_required
+def eliminar_instrumento(request, id_instru):
+    InstrumentoNI.objects.filter(id_instru=id_instru).delete()
+    messages.success(request, 'Instrumento eliminado.')
+    return redirect('inicioAdmin')
+
+@login_required
+def eliminar_rol(request, id_rol):
+    Rol.objects.filter(id_rol=id_rol).delete()
+    messages.success(request, 'Rol eliminado.')
+    return redirect('inicioAdmin')
+
+@login_required
+def guardar_permiso(request):
+    if request.method == 'POST':
+        try:
+            pk = request.POST.get('id_permiso')
+            nombre = request.POST.get('nombre')
+            descripcion = request.POST.get('descripcion')
+            if pk:
+                Permiso.objects.filter(pk=pk).update(nombre=nombre, descripcion_permiso=descripcion)
+                messages.success(request, 'Permiso actualizado.')
+            else:
+                Permiso.objects.create(nombre=nombre, descripcion_permiso=descripcion)
+                messages.success(request, 'Permiso creado.')
+        except Exception as e:
+            messages.error(request, f'Error: {e}')
+        return redirect('inicioAdmin')
+    return redirect('inicioAdmin')
+
+@login_required
+def eliminar_permiso(request, id_permiso):
+    Permiso.objects.filter(id_permiso=id_permiso).delete()
+    messages.success(request, 'Permiso eliminado.')
+    return redirect('inicioAdmin')
+
+@login_required
 def filtrar_calificaciones(request):
     rut = request.GET.get('rut')
     qs  = Calificacion.objects.filter(
@@ -304,3 +389,13 @@ def filtrar_calificaciones(request):
         estado='ACTIVO'
     ).select_related('instrumento')
     return render(request, 'filtrar_resultado.html', {'calificaciones': qs})
+
+@login_required
+def visualizar_usuarios(request):
+    operadores = Usuario.objects.filter(rol_id__nombre_rol__iexact='operador', activo='S')
+    clientes = Usuario.objects.filter(rol_id__nombre_rol__iexact='cliente', activo='S')
+
+    return render(request, 'visualizar_usuarios.html', {
+        'operadores': operadores,
+        'clientes': clientes,
+    })

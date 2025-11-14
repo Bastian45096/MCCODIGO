@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualización de Usuarios - NUAM</title>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #a00000 50%, #000 50%);
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 40px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .container {
+      display: flex;
+      justify-content: space-between;
+      gap: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .column {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .sql-table {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sql-row {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      transition: background 0.3s ease;
+    }
+
+    .sql-row:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-back {
+      display: inline-block;
+      margin-top: 30px;
+      background: #0dcaf0;
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .btn-back:hover {
+      background: #0aa5c0;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Visualización de Usuarios</h2>
+
+  <div class="container">
+    <!-- Columna Operadores -->
+    <div class="column">
+      <h3>Operadores</h3>
+      <div class="sql-table">
+        {% for u in operadores %}
+          <div class="sql-row">
+            <strong>{{ u.nombre }}</strong><br>
+            RUT: {{ u.rut }}<br>
+            Email: {{ u.email }}
+          </div>
+        {% empty %}
+          <p>No hay operadores registrados.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Columna Clientes -->
+    <div class="column">
+      <h3>Clientes</h3>
+      <div class="sql-table">
+        {% for u in clientes %}
+          <div class="sql-row">
+            <strong>{{ u.nombre }}</strong><br>
+            RUT: {{ u.rut }}<br>
+            Email: {{ u.email }}
+          </div>
+        {% empty %}
+          <p>No hay clientes registrados.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;">
+    <a class="btn-back" href="{% url 'inicioAdmin' %}">Volver al menú de opciones</a>
+  </div>
+
+</body>
+</html>
