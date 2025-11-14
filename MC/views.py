@@ -10,6 +10,8 @@ import logging
 import re
 import datetime
 import json
+from django.contrib.auth import logout
+
 
 logger = logging.getLogger(__name__)
 
@@ -399,3 +401,15 @@ def visualizar_usuarios(request):
         'operadores': operadores,
         'clientes': clientes,
     })
+
+from django.contrib.auth import logout
+
+@login_required
+def logout_usuario(request):
+    logout(request)
+    messages.success(request, 'Has cerrado sesión correctamente.')
+    return redirect('login')
+
+
+def principal(request):
+    return render(request, 'principal.html')

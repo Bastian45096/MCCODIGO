@@ -81,3 +81,4 @@ AUTHENTICATION_BACKENDS = [
     'Miapp.back.NameOrEmailBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+LOGIN_URL = '/login/'

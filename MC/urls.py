@@ -41,5 +41,6 @@ urlpatterns = [
     path('admin/eliminar-rol/<int:id_rol>/', views.eliminar_rol, name='eliminar_rol'),
     path('admin/guardar-permiso/', views.guardar_permiso, name='guardar_permiso'),
     path('admin/eliminar-permiso/<int:id_permiso>/', views.eliminar_permiso, name='eliminar_permiso'),
-        path('admin/visualizar-usuarios/', views.visualizar_usuarios, name='visualizar_usuarios'),
-]
+    path('visualizar-usuarios/', views.visualizar_usuarios, name='visualizar_usuarios'),
+    path('logout/', views.logout_usuario, name='logout'),
+    path('', views.principal, name='principal'),]

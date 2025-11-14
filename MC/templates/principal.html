@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NUAM - Bienvenido</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      background: linear-gradient(135deg, #a00000 25%, #000 25%, #000 50%, #a00000 50%, #a00000 75%, #000 75%);
+      background-size: 200% 200%;
+      animation: move 10s ease infinite;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    @keyframes move {
+      0% { background-position: 0% 0%; }
+      50% { background-position: 100% 100%; }
+      100% { background-position: 0% 0%; }
+    }
+
+    .top-bar {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+    }
+
+    .btn-login {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      backdrop-filter: blur(10px);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .btn-login:hover {
+      background: #fff;
+      color: #a00000;
+    }
+
+    .content {
+      z-index: 1;
+      max-width: 800px;
+      padding: 0 20px;
+    }
+
+    .content h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+
+    .content p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <a href="{% url 'login' %}" class="btn-login">Iniciar Sesión</a>
+  </div>
+
+  <div class="content">
+    <h1>
+      NUAM: Integración de mercados, precisión en calificaciones.
+    </h1>
+    <p>
+      Unificamos las Bolsas de Santiago, Colombia y Lima en un solo ecosistema financiero.  
+      Este sistema gestiona calificaciones tributarias de forma automatizada, confiable y trazable,  
+      eliminando errores manuales y acelerando la toma de decisiones.
+    </p>
+  </div>
+
+</body>
+</html>

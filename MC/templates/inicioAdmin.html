@@ -139,7 +139,7 @@
   </div>
 
   <div class="btn-group">
-    <a href="{% url 'visualizar_usuarios' %}" class="btn btn-outline-light">Visualización de Usuarios</a>
+    <a href="{% url 'visualizar_usuarios' %}" class="btn btn-outline-light">Visualización de Usuarios</a>  
   </div>
 
 
@@ -149,6 +149,10 @@
     <input type="file" name="archivo" accept=".json,.csv" required>
     <button type="submit" class="btn btn-outline-light mt-2">Subir archivo</button>
   </form>
+
+  <div class="btn-group">
+    <a href="{% url 'logout' %}" class="btn btn-outline-danger">Cerrar sesión</a>
+  </div>
 </div>
 
 <div class="right-box">
