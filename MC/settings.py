@@ -82,3 +82,4 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 LOGIN_URL = '/login/'
+FERNET_KEY = '2KJUooIpbl_47WwjFrrYNNR1ZxSGw3jQpHONQ5qdXlo='
