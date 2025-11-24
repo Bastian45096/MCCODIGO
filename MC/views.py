@@ -12,6 +12,7 @@ import datetime
 import json
 from django.contrib.auth import logout
 from datetime import date
+from urllib.parse import urlencode
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,31 @@ def validar_calificacion(monto, factor, periodo):
     if periodo > date.today():
         errores.append("La fecha del período no puede ser futura. Ejemplo válido: 2025-05.")
     return errores
+
+# ---- FUNCIÓN AUXILIAR PARA REDIRIGIR AL LISTADO DE CALIFICACIONES ----
+def _back_to_cal_list(request):
+    base = 'inicioAdmin' if request.user.perfil.rol_id.nombre_rol.lower() == 'administrador' else 'inicioOperador'
+    query = urlencode({'seccion': 'calificacion'})
+    return redirect(f'/{base}/?{query}')
+
+# ---- FUNCIÓN AUXILIAR PARA REDIRIGIR AL LISTADO DE USUARIOS ----
+def _back_to_user_list(request):
+    base = 'inicioAdmin' if request.user.perfil.rol_id.nombre_rol.lower() == 'administrador' else 'inicioOperador'
+    query = urlencode({'seccion': 'usuario'})
+    return redirect(f'/{base}/?{query}')
+
+# ---- FUNCIÓN AUXILIAR PARA REDIRIGIR AL LISTADO DE INSTRUMENTOS ----
+def _back_to_instrument_list(request):
+    base = 'inicioAdmin' if request.user.perfil.rol_id.nombre_rol.lower() == 'administrador' else 'inicioOperador'
+    query = urlencode({'seccion': 'instrumento'})
+    return redirect(f'/{base}/?{query}')
+
+# ---- FUNCIÓN AUXILIAR PARA REDIRIGIR AL LISTADO DE ROLES ----
+def _back_to_rol_list(request):
+    base = 'inicioAdmin' if request.user.perfil.rol_id.nombre_rol.lower() == 'administrador' else 'inicioOperador'
+    query = urlencode({'seccion': 'rol'})
+    return redirect(f'/{base}/?{query}')
+
 # -----------------------------------------
 
 def login_usuario(request):
@@ -67,6 +93,7 @@ def inicioAdmin(request):
     usuarios = Usuario.objects.select_related('user_auth', 'rol_id').filter(activo='S')
     calificaciones = Calificacion.objects.filter(estado='ACTIVO')
     permisos = Permiso.objects.all()
+    factor_vals = Factor_Val.objects.all()
 
     seccion = request.GET.get('seccion')
     accion = request.GET.get('accion')
@@ -91,6 +118,7 @@ def inicioAdmin(request):
             'usuarios': usuarios,
             'calificaciones': calificaciones,
             'permisos': permisos,
+            'factor_vals': factor_vals,
             'seccion': seccion,
             'accion': accion,
             'obj': obj,
@@ -104,6 +132,7 @@ def inicioAdmin(request):
             'usuarios': usuarios,
             'calificaciones': calificaciones,
             'permisos': permisos,
+            'factor_vals': factor_vals,
             'seccion': seccion,
             'accion': accion,
             'obj': obj,
@@ -117,11 +146,26 @@ def inicioAdmin(request):
             'usuarios': usuarios,
             'calificaciones': calificaciones,
             'permisos': permisos,
+            'factor_vals': factor_vals,
             'seccion': seccion,
             'accion': accion,
             'obj': obj,
             'obj_id': obj_id,
             'crear_rol': True
+        })
+    elif seccion == 'rol' and accion == 'editar' and obj_id:
+        return render(request, 'inicioAdmin.html', {
+            'instrumentos': instrumentos,
+            'roles': roles,
+            'usuarios': usuarios,
+            'calificaciones': calificaciones,
+            'permisos': permisos,
+            'factor_vals': factor_vals,
+            'seccion': seccion,
+            'accion': accion,
+            'obj': obj,
+            'obj_id': obj_id,
+            'editar_rol': True
         })
 
     return render(request, 'inicioAdmin.html', {
@@ -130,6 +174,7 @@ def inicioAdmin(request):
         'usuarios': usuarios,
         'calificaciones': calificaciones,
         'permisos': permisos,
+        'factor_vals': factor_vals,
         'seccion': seccion,
         'accion': accion,
         'obj': obj,
@@ -142,6 +187,7 @@ def inicioOperador(request):
     roles = Rol.objects.all()
     usuarios = Usuario.objects.select_related('user_auth', 'rol_id').filter(activo='S')
     calificaciones = Calificacion.objects.filter(estado='ACTIVO')
+    factor_vals = Factor_Val.objects.all()
 
     seccion = request.GET.get('seccion')
     accion = request.GET.get('accion')
@@ -163,6 +209,7 @@ def inicioOperador(request):
         'roles': roles,
         'usuarios': usuarios,
         'calificaciones': calificaciones,
+        'factor_vals': factor_vals,
         'seccion': seccion,
         'accion': accion,
         'obj': obj,
@@ -269,23 +316,25 @@ def crear_calificacion(request):
             if errores:
                 for e in errores:
                     messages.error(request, e)
-                return redirect(get_redirect_url(request))
+                return _back_to_cal_list(request)
 
             instru = InstrumentoNI.objects.get(pk=request.POST.get('instrumento'))
             fv = Factor_Val.objects.get(rango_minimo__lte=factor, rango_maximo__gte=factor)
+            usuario_id_usuario = Usuario.objects.get(pk=request.POST.get('usuario_id_usuario'))
+
             Calificacion.objects.create(
                 monto=monto,
                 factor=factor,
                 periodo=periodo,
                 instrumento=instru,
                 estado='ACTIVO',
-                usuario_id_usuario=request.user,
+                usuario_id_usuario=usuario_id_usuario,
                 factor_val_id_factor=fv
             )
             messages.success(request, 'Calificación creada correctamente.')
         except Exception as e:
             messages.error(request, f'Datos incorrectos: {e}')
-    return redirect(get_redirect_url(request))
+    return _back_to_cal_list(request)
 
 # ---------- CARGA MASIVA ----------
 @login_required
@@ -304,37 +353,49 @@ def carga_masiva(request):
 @login_required
 def guardar_calificacion(request):
     if request.method == 'POST':
+        calid = request.POST.get('calid')
+        if calid:
+            return actualizar_calificacion(request, calid)
+
         try:
-            monto = float(request.POST.get('monto'))
-            factor = float(request.POST.get('factor'))
+            monto   = float(request.POST.get('monto'))
+            factor  = float(request.POST.get('factor'))
             periodo = datetime.datetime.strptime(request.POST.get('periodo'), '%Y-%m').date()
 
             errores = validar_calificacion(monto, factor, periodo)
             if errores:
                 for e in errores:
                     messages.error(request, e)
-                return redirect(get_redirect_url(request))
+                return _back_to_cal_list(request)
 
             instru = InstrumentoNI.objects.get(pk=request.POST.get('instrumento'))
-            fv = Factor_Val.objects.get(rango_minimo__lte=factor, rango_maximo__gte=factor)
+            fv     = Factor_Val.objects.get(rango_minimo__lte=factor, rango_maximo__gte=factor)
+
+            usuario_perfil = Usuario.objects.get(pk=request.POST.get('usuario_id_usuario'))
+            usuario_auth   = usuario_perfil.user_auth
+
             Calificacion.objects.create(
                 monto=monto,
                 factor=factor,
                 periodo=periodo,
                 instrumento=instru,
                 estado='ACTIVO',
-                usuario_id_usuario=request.user,
+                usuario_id_usuario=usuario_auth,
                 factor_val_id_factor=fv
             )
             messages.success(request, 'Calificación guardada.')
         except Exception as e:
             messages.error(request, f'Error: {e}')
-    return redirect(get_redirect_url(request))
+    return _back_to_cal_list(request)
 
 # ---------- GUARDAR USUARIO ----------
 @login_required
 def guardar_usuario(request):
     if request.method == 'POST':
+        id_usuario = request.POST.get('id_usuario')
+        if id_usuario:
+            return actualizar_usuario(request, id_usuario)
+
         try:
             nombre = request.POST.get('nombre')
             rut = request.POST.get('rut')
@@ -357,89 +418,80 @@ def guardar_usuario(request):
             messages.success(request, 'Usuario creado correctamente.')
         except Exception as e:
             messages.error(request, f'Error: {e}')
-    return redirect(get_redirect_url(request))
+    return _back_to_user_list(request)
 
 # ---------- GUARDAR INSTRUMENTO ----------
 @login_required
 def guardar_instrumento(request):
     if request.method == 'POST':
+        id_instru = request.POST.get('id_instru')
+        if id_instru:
+            return actualizar_instrumento(request, id_instru)
+
         try:
-            pk = request.POST.get('id_instru')
             nombre = request.POST.get('nombre')
             regla_es = request.POST.get('regla_es')
             estado = request.POST.get('estado')
-            if pk:
-                InstrumentoNI.objects.filter(pk=pk).update(
-                    nombre=nombre,
-                    regla_es=regla_es,
-                    estado=estado
-                )
-                messages.success(request, 'Instrumento actualizado.')
-            else:
-                InstrumentoNI.objects.create(
-                    nombre=nombre,
-                    regla_es=regla_es,
-                    estado=estado
-                )
-                messages.success(request, 'Instrumento creado.')
+            InstrumentoNI.objects.create(
+                nombre=nombre,
+                regla_es=regla_es,
+                estado=estado
+            )
+            messages.success(request, 'Instrumento creado.')
         except Exception as e:
             messages.error(request, f'Error: {e}')
-    return redirect(get_redirect_url(request))
+    return _back_to_instrument_list(request)
 
 # ---------- GUARDAR ROL ----------
 @login_required
 def guardar_rol(request):
     if request.method == 'POST':
+        id_rol = request.POST.get('id_rol')
+        if id_rol:
+            return actualizar_rol(request, id_rol)
+
         try:
-            pk = request.POST.get('id_rol')
             nombre = request.POST.get('nombre_rol')
             descripcion = request.POST.get('descripcion_rol')
-            if pk:
-                Rol.objects.filter(pk=pk).update(
-                    nombre_rol=nombre,
-                    descripcion_rol=descripcion
-                )
-                messages.success(request, 'Rol actualizado.')
-            else:
-                Rol.objects.create(
-                    nombre_rol=nombre,
-                    descripcion_rol=descripcion
-                )
-                messages.success(request, 'Rol creado.')
+            Rol.objects.create(
+                nombre_rol=nombre,
+                descripcion_rol=descripcion
+            )
+            messages.success(request, 'Rol creado.')
         except Exception as e:
             messages.error(request, f'Error: {e}')
-    return redirect(get_redirect_url(request))
+    return _back_to_rol_list(request)
 
 # ---------- ELIMINAR ----------
 @login_required
 def eliminar_calificacion(request, calid):
     Calificacion.objects.filter(calid=calid).delete()
     messages.success(request, 'Calificación eliminada.')
-    return redirect('inicioAdmin')
+    return redirect(get_redirect_url(request))
 
 @login_required
 def eliminar_usuario(request, id_usuario):
     Usuario.objects.filter(id_usuario=id_usuario).delete()
     messages.success(request, 'Usuario eliminado.')
-    return redirect('inicioAdmin')
+    return redirect(get_redirect_url(request))
 
 @login_required
 def eliminar_instrumento(request, id_instru):
     InstrumentoNI.objects.filter(id_instru=id_instru).delete()
     messages.success(request, 'Instrumento eliminado.')
-    return redirect('inicioAdmin')
+    return redirect(get_redirect_url(request))
 
 @login_required
 def eliminar_rol(request, id_rol):
     Rol.objects.filter(id_rol=id_rol).delete()
     messages.success(request, 'Rol eliminado.')
-    return redirect('inicioAdmin')
+    return redirect(get_redirect_url(request))
 
 @login_required
 def eliminar_permiso(request, id_permiso):
     Permiso.objects.filter(id_permiso=id_permiso).delete()
     messages.success(request, 'Permiso eliminado correctamente.')
-    return redirect('inicioAdmin')
+    return redirect(get_redirect_url(request))
 
 # ---------- GUARDAR PERMISO ----------
 @login_required
@@ -457,7 +509,7 @@ def guardar_permiso(request):
                 messages.success(request, 'Permiso creado.')
         except Exception as e:
             messages.error(request, f'Error: {e}')
-    return redirect('inicioAdmin')
+    return redirect(get_redirect_url(request))
 
 # ---------- FILTRAR ----------
 @login_required
@@ -501,7 +553,7 @@ def actualizar_calificacion(request, calid):
             if errores:
                 for e in errores:
                     messages.error(request, e)
-                return redirect('inicioAdmin')
+                return _back_to_cal_list(request)
 
             cal.monto = monto
             cal.factor = factor
@@ -515,8 +567,8 @@ def actualizar_calificacion(request, calid):
             messages.success(request, 'Calificación actualizada correctamente.')
         except Exception as e:
             messages.error(request, f'Error al actualizar calificación: {e}')
-        return redirect('inicioAdmin')
-    return redirect('inicioAdmin')
+        return _back_to_cal_list(request)
+    return redirect(get_redirect_url(request))
 
 # ---------- ACTUALIZAR USUARIO ----------
 @login_required
@@ -538,8 +590,8 @@ def actualizar_usuario(request, id_usuario):
             messages.success(request, 'Usuario actualizado correctamente.')
         except Exception as e:
             messages.error(request, f'Error al actualizar usuario: {e}')
-        return redirect('inicioAdmin')
-    return redirect('inicioAdmin')
+        return _back_to_user_list(request)
+    return redirect(get_redirect_url(request))
 
 # ---------- ACTUALIZAR INSTRUMENTO ----------
 @login_required
@@ -554,5 +606,20 @@ def actualizar_instrumento(request, id_instru):
             messages.success(request, 'Instrumento actualizado correctamente.')
         except Exception as e:
             messages.error(request, f'Error al actualizar instrumento: {e}')
-        return redirect('inicioAdmin')
-    return redirect('inicioAdmin')
+        return _back_to_instrument_list(request)
+    return redirect(get_redirect_url(request))
+
+# ---------- ACTUALIZAR ROL ----------
+@login_required
+def actualizar_rol(request, id_rol):
+    rol = get_object_or_404(Rol, id_rol=id_rol)
+    if request.method == 'POST':
+        try:
+            rol.nombre_rol = request.POST.get('nombre_rol')
+            rol.descripcion_rol = request.POST.get('descripcion_rol')
+            rol.save()
+            messages.success(request, 'Rol actualizado correctamente.')
+        except Exception as e:
+            messages.error(request, f'Error al actualizar rol: {e}')
+        return _back_to_rol_list(request)
+    return redirect(get_redirect_url(request))

@@ -166,7 +166,7 @@
         <label>Factor (%)</label>
         <input type="number" step="0.01" name="factor" required>
         <label>Período</label>
-        <input type="month" name="periodo" required>
+        <input type="month" name="periodo" max="{{hoy|date:'Y-m'}}" required>
         <label>Instrumento</label>
         <select name="instrumento" required>
           <option value="">-- Seleccione --</option>
@@ -174,6 +174,28 @@
             <option value="{{ i.id_instru }}">{{ i.nombre }}</option>
           {% endfor %}
         </select>
+        <label>Estado</label>
+        <select name="estado" required>
+          <option value="ACTIVO">ACTIVO</option>
+          <option value="INACTIVO">INACTIVO</option>
+        </select>
+        <label>UsuarioASC</label>
+        <select name="usuario_id_usuario" required>
+
+          <option value="">-- Seleccione </option>
+          {%for u in usuarios%}
+            <option value="{{ u.id_usuario}}">{{u.nombre}}</option>
+          {% endfor %}
+          </select>
+
+          <label>Factor Val</label>
+          <select name="factor_val_id_factor" required>
+            <option value=""> -- Seleccione </option>
+            {% for fv in factor_vals %}
+              <option value="{{fv.id_factor}}">{{fv.id_factor}}</option>
+            {% endfor %}
+          </select>
+
         <button type="submit" class="btn-success mt-3">Crear Calificación</button>
       </form>
     </div>
@@ -370,6 +392,20 @@
           </div>
         {% endfor %}
       </div>
+    </div>
+
+    {% elif seccion == 'rol' and accion == 'editar' and obj %}
+    <div class="card">
+      <h2>Editar Rol</h2>
+      <form method="post" action="{% url 'guardar_rol' %}">
+        {% csrf_token %}
+        <input type="hidden" name="id_rol" value="{{ obj.id_rol }}">
+        <label>Nombre del Rol</label>
+        <input type="text" name="nombre_rol" value="{{ obj.nombre_rol }}" required>
+        <label>Descripción</label>
+        <textarea name="descripcion_rol" class="form-control" rows="3" required>{{ obj.descripcion_rol }}</textarea>
+        <button type="submit" class="btn-success mt-3">Guardar cambios</button>
+      </form>
     </div>
 
   {% elif seccion == 'permiso' and accion == 'crear' %}
