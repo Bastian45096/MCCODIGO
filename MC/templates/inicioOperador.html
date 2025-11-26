@@ -4,54 +4,116 @@
   <meta charset="UTF-8">
   <title>Panel Operador - NUAM</title>
   <style>
-    *{margin:0;padding:0;box-sizing:border-box;}
-    html,body{height:100%;}
-    body{
-      display:flex;
-      background:linear-gradient(to bottom,#a00000 50%,#000 50%);
-      font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    .left-box{
-      width:320px;height:100vh;
-      background:rgba(0,0,0,.7);
-      color:#fff;
-      padding:30px 20px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
+    html, body {
+      height: 100%;
     }
-    .left-box h3{font-size:18px;margin-bottom:10px;}
-    .btn-group{display:flex;gap:6px;}
-    .btn{
-      flex:1;height:36px;border:none;border-radius:6px;
-      font-size:14px;font-weight:bold;cursor:pointer;
+    body {
+      display: flex;
+      background: linear-gradient(to bottom, #ff0000 50%, #000000 50%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #ffffff;
     }
-    .btn-outline-light{
-      background:transparent;color:#fff;border:1px solid #fff;
+    .left-box {
+      width: 320px;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
-    .btn-outline-light:hover{background:#fff;color:#000;}
-    .right-box{
-      flex:1;display:flex;align-items:flex-start;justify-content:center;
-      padding:40px 20px;
+    .left-box h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
     }
-    .card{
-      width:90%;max-width:420px;
-      background:rgba(0,0,0,.6);
-      border-radius:12px;padding:30px;
-      color:#fff;display:flex;flex-direction:column;gap:15px;
+    .btn-group {
+      display: flex;
+      gap: 6px;
     }
-    .card h2{font-size:22px;text-align:center;margin-bottom:10px;}
-    label{font-size:14px;margin-bottom:4px;}
-    input,select,textarea{
-      width:100%;height:48px;border:none;border-radius:8px;
-      padding:0 15px;font-size:16px;
-      background:rgba(255,255,255,.1);color:#fff;outline:none;
+    .btn {
+      flex: 1;
+      height: 36px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      background-color: #ff0000;
+      color: #ffffff;
+      transition: background-color 0.3s ease;
     }
-    input::placeholder{color:#ccc;}
-    .btn-success{width:100%;height:48px;border:none;border-radius:8px;
-                 font-size:16px;font-weight:bold;cursor:pointer;
-                 background:#198754;color:#fff;}
-    .btn-success:hover{background:#157347;}
+    .btn:hover {
+      background-color: #cc0000;
+    }
+    .btn-outline-light {
+      background: transparent;
+      color: #ffffff;
+      border: 1px solid #ffffff;
+    }
+    .btn-outline-light:hover {
+      background: #ffffff;
+      color: #000000;
+    }
+    .right-box {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .card {
+      width: 90%;
+      max-width: 420px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 12px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .card h2 {
+      font-size: 22px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    label {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    input, select, textarea {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 8px;
+      padding: 0 15px;
+      font-size: 16px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      outline: none;
+    }
+    input::placeholder {
+      color: #cccccc;
+    }
+    .btn-success {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #198754;
+      color: #ffffff;
+      transition: background-color 0.3s ease;
+    }
+    .btn-success:hover {
+      background: #157347;
+    }
 
     /* Estilo tipo tabla SQL */
     .sql-table {
@@ -59,7 +121,6 @@
       flex-direction: column;
       gap: 10px;
     }
-
     .sql-row {
       display: flex;
       justify-content: space-between;
@@ -70,39 +131,39 @@
       padding: 12px 16px;
       transition: background 0.3s ease;
     }
-
     .sql-row:hover {
       background: rgba(255, 255, 255, 0.1);
     }
-
     .sql-cell {
       flex: 1;
       font-size: 14px;
       line-height: 1.5;
     }
-
     .sql-action {
       margin-left: 20px;
     }
-
     .btn-edit {
       background-color: #0dcaf0;
-      color: #000;
+      color: #000000;
       padding: 6px 12px;
       border-radius: 6px;
       text-decoration: none;
       font-weight: bold;
       font-size: 14px;
-      transition: background 0.3s ease;
+      transition: background-color 0.3s ease;
     }
-
     .btn-edit:hover {
       background-color: #0aa5c0;
     }
 
-    @media(max-width:768px){
-      body{flex-direction:column;}
-      .left-box{width:100%;height:auto;}
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+      .left-box {
+        width: 100%;
+        height: auto;
+      }
     }
   </style>
 </head>
@@ -124,11 +185,6 @@
   <div class="btn-group">
     <a href="?seccion=instrumento&accion=crear" class="btn btn-outline-light">Crear Instrumento</a>
     <a href="?seccion=instrumento&accion=editar" class="btn btn-outline-light">Editar Instrumento</a>
-  </div>
-
-  <div class="btn-group">
-    <a href="?seccion=rol&accion=crear" class="btn btn-outline-light">Crear Rol</a>
-    <a href="?seccion=rol&accion=editar" class="btn btn-outline-light">Editar Rol</a>
   </div>
 
   <div class="btn-group">
@@ -173,20 +229,18 @@
         </select>
         <label>UsuarioASC</label>
         <select name="usuario_id_usuario" required>
-
           <option value="">-- Seleccione </option>
-          {%for u in usuarios%}
-            <option value="{{ u.id_usuario}}">{{u.nombre}}</option>
+          {% for u in usuarios %}
+            <option value="{{ u.id_usuario }}">{{ u.nombre }}</option>
           {% endfor %}
-          </select>
-
-          <label>Factor Val</label>
-          <select name="factor_val_id_factor" required>
-            <option value=""> -- Seleccione </option>
-            {% for fv in factor_vals %}
-              <option value="{{fv.id_factor}}">{{fv.id_factor}}</option>
-            {% endfor %}
-          </select>
+        </select>
+        <label>Factor Val</label>
+        <select name="factor_val_id_factor" required>
+          <option value=""> -- Seleccione </option>
+          {% for fv in factor_vals %}
+            <option value="{{ fv.id_factor }}">{{ fv.id_factor }}</option>
+          {% endfor %}
+        </select>
         <button type="submit" class="btn-success mt-3">Crear Calificación</button>
       </form>
     </div>
@@ -345,51 +399,6 @@
           <option value="ACTIVO" {% if obj.estado == 'ACTIVO' %}selected{% endif %}>ACTIVO</option>
           <option value="INACTIVO" {% if obj.estado == 'INACTIVO' %}selected{% endif %}>INACTIVO</option>
         </select>
-        <button type="submit" class="btn-success mt-3">Guardar cambios</button>
-      </form>
-    </div>
-
-  {% elif seccion == 'rol' and accion == 'crear' %}
-    <div class="card">
-      <h2>Crear Rol</h2>
-      <form method="post" action="{% url 'guardar_rol' %}">
-        {% csrf_token %}
-        <label>Nombre del Rol</label>
-        <input type="text" name="nombre_rol" required>
-        <label>Descripción</label>
-        <textarea name="descripcion_rol" class="form-control" rows="3" required></textarea>
-        <button type="submit" class="btn-success mt-3">Crear Rol</button>
-      </form>
-    </div>
-
-  {% elif seccion == 'rol' and accion == 'editar' and not obj_id %}
-    <div class="card">
-      <h2>Seleccione un Rol para Editar</h2>
-      <div class="sql-table">
-        {% for r in roles %}
-          <div class="sql-row">
-            <div class="sql-cell">
-              <strong>Rol:</strong> {{ r.nombre_rol }}<br>
-              <strong>Descripción:</strong> {{ r.descripcion_rol|truncatewords:10 }}
-            </div>
-            <div class="sql-action">
-              <a class="btn-edit" href="?seccion=rol&accion=editar&obj_id={{ r.id_rol }}">Editar</a>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-
-  {% elif seccion == 'rol' and accion == 'editar' and obj_id %}
-    <div class="card">
-      <h2>Editar Rol</h2>
-      <form method="post" action="{% url 'guardar_rol' %}">
-        {% csrf_token %}
-        <input type="hidden" name="id_rol" value="{{ obj.id_rol }}">
-        <label>Nombre del Rol</label>
-        <input type="text" name="nombre_rol" value="{{ obj.nombre_rol }}" required>
-        <label>Descripción</label>
-        <textarea name="descripcion_rol" class="form-control" rows="3" required>{{ obj.descripcion_rol }}</textarea>
         <button type="submit" class="btn-success mt-3">Guardar cambios</button>
       </form>
     </div>

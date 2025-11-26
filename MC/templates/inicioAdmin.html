@@ -8,8 +8,16 @@
     html,body{height:100%;}
     body{
       display:flex;
-      background:linear-gradient(to bottom,#a00000 50%,#000 50%);
       font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+      overflow: hidden;
+    }
+    @keyframes colorChange {
+      0% { background-color: black; }
+      50% { background-color: red; }
+      100% { background-color: black; }
+    }
+    body{
+      animation: colorChange 5s infinite;
     }
     .left-box{
       width:320px;height:100vh;
@@ -25,11 +33,17 @@
     .btn{
       flex:1;height:36px;border:none;border-radius:6px;
       font-size:14px;font-weight:bold;cursor:pointer;
+      background:transparent;
+      color:#fff;
+      border:1px solid #fff;
+      box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000, 0 0 30px #ff0000;
+      transition: box-shadow 0.3s ease;
     }
-    .btn-outline-light{
-      background:transparent;color:#fff;border:1px solid #fff;
+    .btn:hover{
+      background:#ff0000;
+      color:#000;
+      box-shadow: 0 0 15px #ff0000, 0 0 25px #ff0000, 0 0 35px #ff0000;
     }
-    .btn-outline-light:hover{background:#fff;color:#000;}
     .right-box{
       flex:1;display:flex;align-items:flex-start;justify-content:center;
       padding:40px 20px;
@@ -61,10 +75,12 @@
       text-decoration: none;
       font-weight: bold;
       font-size: 14px;
+      box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000, 0 0 30px #ff0000;
     }
 
     .btn-danger:hover {
       background-color: #c82333;
+      box-shadow: 0 0 15px #ff0000, 0 0 25px #ff0000, 0 0 35px #ff0000;
     }
 
     .sql-table {
@@ -111,47 +127,47 @@
   <h3>Admin - Opciones</h3>
 
   <div class="btn-group">
-    <a href="?seccion=calificacion&accion=crear" class="btn btn-outline-light">Crear Calificación</a>
-    <a href="?seccion=calificacion&accion=editar" class="btn btn-outline-light">Editar Calificación</a>
+    <a href="?seccion=calificacion&accion=crear" class="btn">Crear Calificación</a>
+    <a href="?seccion=calificacion&accion=editar" class="btn">Editar Calificación</a>
   </div>
 
   <div class="btn-group">
-    <a href="?seccion=usuario&accion=crear" class="btn btn-outline-light">Crear Usuario</a>
-    <a href="?seccion=usuario&accion=editar" class="btn btn-outline-light">Editar Usuario</a>
+    <a href="?seccion=usuario&accion=crear" class="btn">Crear Usuario</a>
+    <a href="?seccion=usuario&accion=editar" class="btn">Editar Usuario</a>
   </div>
 
   <div class="btn-group">
-    <a href="?seccion=instrumento&accion=crear" class="btn btn-outline-light">Crear Instrumento</a>
-    <a href="?seccion=instrumento&accion=editar" class="btn btn-outline-light">Editar Instrumento</a>
+    <a href="?seccion=instrumento&accion=crear" class="btn">Crear Instrumento</a>
+    <a href="?seccion=instrumento&accion=editar" class="btn">Editar Instrumento</a>
   </div>
 
   <div class="btn-group">
-    <a href="?seccion=rol&accion=crear" class="btn btn-outline-light">Crear Rol</a>
-    <a href="?seccion=rol&accion=editar" class="btn btn-outline-light">Editar Rol</a>
+    <a href="?seccion=rol&accion=crear" class="btn">Crear Rol</a>
+    <a href="?seccion=rol&accion=editar" class="btn">Editar Rol</a>
   </div>
 
   <div class="btn-group">
-    <a href="?seccion=permiso&accion=crear" class="btn btn-outline-light">Crear Permiso</a>
-    <a href="?seccion=permiso&accion=editar" class="btn btn-outline-light">Editar Permiso</a>
+    <a href="?seccion=permiso&accion=crear" class="btn">Crear Permiso</a>
+    <a href="?seccion=permiso&accion=editar" class="btn">Editar Permiso</a>
   </div>
 
   <div class="btn-group">
-    <a href="?seccion=filtrar" class="btn btn-outline-light">Filtrar Calificaciones</a>
+    <a href="?seccion=filtrar" class="btn">Filtrar Calificaciones</a>
   </div>
 
   <div class="btn-group">
-    <a href="{% url 'visualizar_usuarios' %}" class="btn btn-outline-light">Visualización de Usuarios</a>  
+    <a href="{% url 'visualizar_usuarios' %}" class="btn">Visualización de Usuarios</a>  
   </div>
 
   <h3 class="mt-4">Carga masiva</h3>
   <form method="post" action="{% url 'carga_masiva' %}" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="file" name="archivo" accept=".json,.csv" required>
-    <button type="submit" class="btn btn-outline-light mt-2">Subir archivo</button>
+    <button type="submit" class="btn">Subir archivo</button>
   </form>
 
   <div class="btn-group">
-    <a href="{% url 'logout' %}" class="btn btn-outline-danger">Cerrar sesión</a>
+    <a href="{% url 'logout' %}" class="btn btn-danger">Cerrar sesión</a>
   </div>
 </div>
 
@@ -181,25 +197,21 @@
         </select>
         <label>UsuarioASC</label>
         <select name="usuario_id_usuario" required>
-
           <option value="">-- Seleccione </option>
-          {%for u in usuarios%}
-            <option value="{{ u.id_usuario}}">{{u.nombre}}</option>
+          {% for u in usuarios %}
+            <option value="{{ u.id_usuario }}">{{ u.nombre }}</option>
           {% endfor %}
-          </select>
-
-          <label>Factor Val</label>
-          <select name="factor_val_id_factor" required>
-            <option value=""> -- Seleccione </option>
-            {% for fv in factor_vals %}
-              <option value="{{fv.id_factor}}">{{fv.id_factor}}</option>
-            {% endfor %}
-          </select>
-
+        </select>
+        <label>Factor Val</label>
+        <select name="factor_val_id_factor" required>
+          <option value=""> -- Seleccione </option>
+          {% for fv in factor_vals %}
+            <option value="{{ fv.id_factor }}">{{ fv.id_factor }}</option>
+          {% endfor %}
+        </select>
         <button type="submit" class="btn-success mt-3">Crear Calificación</button>
       </form>
     </div>
-
   {% elif seccion == 'calificacion' and accion == 'editar' and not obj_id %}
     <div class="card">
       <h2>Seleccione una Calificación para Editar</h2>
@@ -219,7 +231,6 @@
         {% endfor %}
       </div>
     </div>
-
   {% elif seccion == 'calificacion' and accion == 'editar' and obj %}
     <div class="card">
       <h2>Editar Calificación</h2>
@@ -242,7 +253,6 @@
         <button type="submit" class="btn-success mt-3">Guardar cambios</button>
       </form>
     </div>
-
   {% elif seccion == 'usuario' and accion == 'crear' %}
     <div class="card">
       <h2>Crear Usuario</h2>
@@ -263,7 +273,6 @@
         <button type="submit" class="btn-success mt-3">Crear Usuario</button>
       </form>
     </div>
-
   {% elif seccion == 'usuario' and accion == 'editar' and not obj_id %}
     <div class="card">
       <h2>Seleccione un Usuario para Editar</h2>
@@ -283,7 +292,6 @@
         {% endfor %}
       </div>
     </div>
-
   {% elif seccion == 'usuario' and accion == 'editar' and obj %}
     <div class="card">
       <h2>Editar Usuario</h2>
@@ -306,7 +314,6 @@
         <button type="submit" class="btn-success mt-3">Guardar cambios</button>
       </form>
     </div>
-
   {% elif seccion == 'instrumento' and accion == 'crear' %}
     <div class="card">
       <h2>Crear Instrumento</h2>
@@ -324,7 +331,6 @@
         <button type="submit" class="btn-success mt-3">Crear Instrumento</button>
       </form>
     </div>
-
   {% elif seccion == 'instrumento' and accion == 'editar' and not obj_id %}
     <div class="card">
       <h2>Seleccione un Instrumento para Editar</h2>
@@ -343,7 +349,6 @@
         {% endfor %}
       </div>
     </div>
-
   {% elif seccion == 'instrumento' and accion == 'editar' and obj %}
     <div class="card">
       <h2>Editar Instrumento</h2>
@@ -361,7 +366,6 @@
         <button type="submit" class="btn-success mt-3">Guardar cambios</button>
       </form>
     </div>
-
   {% elif seccion == 'rol' and accion == 'crear' %}
     <div class="card">
       <h2>Crear Rol</h2>
@@ -374,7 +378,6 @@
         <button type="submit" class="btn-success mt-3">Crear Rol</button>
       </form>
     </div>
-
   {% elif seccion == 'rol' and accion == 'editar' and not obj_id %}
     <div class="card">
       <h2>Seleccione un Rol para Editar</h2>
@@ -393,8 +396,7 @@
         {% endfor %}
       </div>
     </div>
-
-    {% elif seccion == 'rol' and accion == 'editar' and obj %}
+  {% elif seccion == 'rol' and accion == 'editar' and obj %}
     <div class="card">
       <h2>Editar Rol</h2>
       <form method="post" action="{% url 'guardar_rol' %}">
@@ -407,7 +409,6 @@
         <button type="submit" class="btn-success mt-3">Guardar cambios</button>
       </form>
     </div>
-
   {% elif seccion == 'permiso' and accion == 'crear' %}
     <div class="card">
       <h2>Crear Permiso</h2>
@@ -420,7 +421,6 @@
         <button type="submit" class="btn-success mt-3">Crear Permiso</button>
       </form>
     </div>
-
   {% elif seccion == 'permiso' and accion == 'editar' and not obj_id %}
     <div class="card">
       <h2>Seleccione un Permiso para Editar</h2>
@@ -439,7 +439,6 @@
         {% endfor %}
       </div>
     </div>
-
   {% elif seccion == 'permiso' and accion == 'editar' and obj_id %}
     <div class="card">
       <h2>Editar Permiso</h2>
@@ -453,7 +452,6 @@
         <button type="submit" class="btn-success mt-3">Guardar cambios</button>
       </form>
     </div>
-
   {% elif seccion == 'filtrar' %}
     <div class="card">
       <h2>Filtrar Calificaciones por RUT</h2>
