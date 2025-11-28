@@ -54,8 +54,8 @@ class Usuario(models.Model):
     nombre = models.CharField(max_length=255)
     _email = models.CharField(max_length=255, unique=True, db_column='email_encrypted', default='fake@example.com')
     rut_hash = models.CharField(max_length=128, blank=True, editable=False)
-    rut = models.CharField(max_length=12, blank=True, null=True, unique=True, db_index=True)  # <-- CORREGIDO
-    rol_id = models.ForeignKey('Rol', on_delete=models.CASCADE)
+    rut = models.CharField(max_length=12, unique=True, db_index=True)
+    rol_id = models.ForeignKey('Rol', on_delete=models.PROTECT)
     activo = models.CharField(max_length=1, default='S')
 
     @property
@@ -78,27 +78,33 @@ class Usuario(models.Model):
         cuerpo = clean[:-1]
         dv = clean[-1].upper()
         self.rut_hash = make_password(clean)
-        self.rut = f"{cuerpo}-{dv}"  # <-- GUARDA EN 'rut'
+        self.rut = f"{cuerpo}-{dv}"
 
     def verify_rut(self, raw_rut: str) -> bool:
         clean = re.sub(r'[^0-9kK]', '', raw_rut.upper())
         return check_password(clean, self.rut_hash)
+
+    def tiene_permiso(self, permiso_nombre: str) -> bool:
+        return RolPermiso.objects.filter(
+            rol=self.rol_id,
+            permiso__nombre=permiso_nombre
+        ).exists()
 
     def __str__(self):
         return self.nombre or 'Sin nombre'
 
 class Rol(models.Model):
     id_rol = models.AutoField(primary_key=True)
-    nombre_rol = models.CharField(max_length=50)
-    descripcion_rol = models.TextField()
+    nombre_rol = models.CharField(max_length=50, unique=True)
+    descripcion_rol = models.TextField(blank=True)
 
     def __str__(self):
         return self.nombre_rol
 
 class Permiso(models.Model):
     id_permiso = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=50)
-    descripcion_permiso = models.TextField()
+    nombre = models.CharField(max_length=50, unique=True)
+    descripcion_permiso = models.TextField(blank=True)
 
     def __str__(self):
         return self.nombre
@@ -107,20 +113,23 @@ class RolPermiso(models.Model):
     rol = models.ForeignKey(Rol, on_delete=models.CASCADE)
     permiso = models.ForeignKey(Permiso, on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = ('rol', 'permiso')
+
 class InstrumentoNI(models.Model):
     id_instru = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=255)
-    regla_es = models.TextField()
-    estado = models.CharField(max_length=50)
+    regla_es = models.TextField(blank=True)
+    estado = models.CharField(max_length=10, default='ACTIVO', choices=[('ACTIVO','ACTIVO'),('INACTIVO','INACTIVO')])
 
     def __str__(self):
         return self.nombre
 
 class Factor_Val(models.Model):
     id_factor = models.AutoField(primary_key=True)
-    rango_minimo = models.FloatField()
-    rango_maximo = models.FloatField()
-    descripcion = models.TextField()
+    rango_minimo = models.DecimalField(max_digits=12, decimal_places=4)
+    rango_maximo = models.DecimalField(max_digits=12, decimal_places=4)
+    descripcion = models.TextField(blank=True)
 
     def clean(self):
         if self.rango_minimo >= self.rango_maximo:
@@ -132,31 +141,64 @@ class Factor_Val(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.rango_minimo}-{self.rango_maximo}"
+        return f"{self.rango_minimo} - {self.rango_maximo}"
 
 class Calificacion(models.Model):
+    ESTADOS = [('ACTIVO','ACTIVO'), ('ELIMINADO','ELIMINADO'), ('PENDIENTE','PENDIENTE')]
+    
     calid = models.AutoField(primary_key=True)
-    monto = models.FloatField()
-    factor = models.FloatField()
+    monto = models.DecimalField(max_digits=18, decimal_places=2)
+    factor = models.DecimalField(max_digits=10, decimal_places=4)
     periodo = models.DateField()
-    instrumento = models.ForeignKey(InstrumentoNI, on_delete=models.CASCADE)
-    estado = models.CharField(max_length=50, default='PENDIENTE')
-    fecha_creacion = models.DateField(auto_now_add=True)
-    fecha_modificacion = models.DateField(auto_now=True)
-    usuario_id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    factor_val_id_factor = models.ForeignKey(Factor_Val, on_delete=models.CASCADE)
+    instrumento = models.ForeignKey(InstrumentoNI, on_delete=models.PROTECT)
+    estado = models.CharField(max_length=10, choices=ESTADOS, default='ACTIVO')
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
+    usuario_id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='calificaciones')
+    factor_val_id_factor = models.ForeignKey(Factor_Val, on_delete=models.PROTECT)
+    eliminado_por = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, 
+                                     related_name='calificaciones_eliminadas', on_delete=models.SET_NULL)
+    fecha_eliminacion = models.DateTimeField(null=True, blank=True)
+
+    def delete(self, *args, **kwargs):
+        self.estado = 'ELIMINADO'
+        if kwargs.get('user'):
+            self.eliminado_por = kwargs.get('user')
+        self.fecha_eliminacion = datetime.datetime.now()
+        self.save()
+
+    def hard_delete(self):
+        super().delete()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['periodo']),
+            models.Index(fields=['instrumento']),
+            models.Index(fields=['estado']),
+            models.Index(fields=['usuario_id_usuario']),
+            models.Index(fields=['monto']),
+        ]
+        permissions = [
+            ("puede_crear_calificacion", "Puede crear calificación"),
+            ("puede_editar_calificacion", "Puede editar calificación"),
+            ("puede_eliminar_calificacion", "Puede eliminar calificación"),
+            ("puede_ver_todas_calificaciones", "Puede ver todas las calificaciones"),
+            ("puede_carga_masiva", "Puede realizar carga masiva"),
+        ]
 
     def __str__(self):
         return f"{self.instrumento} - {self.periodo}"
 
 class CargaMasiva(models.Model):
     id_cm = models.AutoField(primary_key=True)
-    archivo = models.JSONField()
+    archivo = models.FileField(upload_to='cargas_masivas/%Y/%m/%d/')
     errores = models.TextField(blank=True)
-    calificacion_calid = models.ForeignKey(Calificacion, on_delete=models.CASCADE, null=True, blank=True)
+    procesado = models.BooleanField(default=False)
+    fecha = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True)
 
     def __str__(self):
-        return f"Carga {self.id_cm}"
+        return f"Carga {self.id_cm} - {self.fecha.date() if self.fecha else 'N/A'}"
 
 class Busqueda(models.Model):
     id_busqueda = models.AutoField(primary_key=True)
@@ -168,32 +210,33 @@ class Busqueda(models.Model):
 
 class Auditoria(models.Model):
     id_Auditoria = models.AutoField(primary_key=True)
-    accion = models.CharField(max_length=255)
-    Tabla = models.CharField(max_length=255)
-    Cambios = models.TextField()
-    Fecha = models.DateField(auto_now_add=True)
-    ip = models.CharField(max_length=255)
-    Firma_Digital = models.CharField(max_length=255)
-    usuario_id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.accion} en {self.Tabla} ({self.Fecha})"
+    accion = models.CharField(max_length=50)
+    tabla = models.CharField(max_length=50, null=True, blank=True)
+    cambios = models.TextField()
+    fecha = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    firma_digital = models.CharField(max_length=255)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
 
     @staticmethod
-    def registrar(accion, tabla, cambios, fecha, ip, firma, usuario):
-        cambios_mascarados = Auditoria._mask_sensitive(cambios)
-        return Auditoria.objects.create(
+    def registrar(accion, tabla, cambios, request=None):
+        usuario = request.user if request and request.user.is_authenticated else None
+        ip = request.META.get('REMOTE_ADDR') if request else None
+        cambios_mascarados = Auditoria._mask_sensitive(str(cambios))
+        Auditoria.objects.create(
             accion=accion,
-            Tabla=tabla,
-            Cambios=cambios_mascarados,
-            Fecha=fecha,
+            tabla=tabla,
+            cambios=cambios_mascarados,
             ip=ip,
-            Firma_Digital=firma,
-            usuario_id_usuario=usuario,
+            firma_digital=f"user:{usuario.id if usuario else 'anon'}",
+            usuario=usuario,
         )
 
     @staticmethod
     def _mask_sensitive(data: str) -> str:
         data = re.sub(r'\b[\w.-]+@[\w.-]+\.\w{2,}\b', '***@***.tld', data)
-        data = re.sub(r'\b\d{4}-\d{4}-\d{4}-(\d{4})\b', r'****-****-****-\1', data)
+        data = re.sub(r'\b\d{8,9}-[\dkK]\b', '********-K', data)
         return data
+
+    def __str__(self):
+        return f"{self.accion} en {self.tabla} ({self.fecha})"

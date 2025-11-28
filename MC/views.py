@@ -17,7 +17,6 @@ from urllib.parse import urlencode
 
 logger = logging.getLogger(__name__)
 
-# ---------- VALIDACIÓN AUXILIAR ----------
 def validar_calificacion(monto, factor, periodo):
     errores = []
     if monto <= 0:
@@ -28,31 +27,25 @@ def validar_calificacion(monto, factor, periodo):
         errores.append("La fecha del período no puede ser futura. Ejemplo válido: 2025-05.")
     return errores
 
-# ---- FUNCIÓN AUXILIAR PARA REDIRIGIR AL LISTADO DE CALIFICACIONES ----
 def _back_to_cal_list(request):
     base = 'inicioAdmin' if request.user.perfil.rol_id.nombre_rol.lower() == 'administrador' else 'inicioOperador'
     query = urlencode({'seccion': 'calificacion'})
     return redirect(f'/{base}/?{query}')
 
-# ---- FUNCIÓN AUXILIAR PARA REDIRIGIR AL LISTADO DE USUARIOS ----
 def _back_to_user_list(request):
     base = 'inicioAdmin' if request.user.perfil.rol_id.nombre_rol.lower() == 'administrador' else 'inicioOperador'
     query = urlencode({'seccion': 'usuario'})
     return redirect(f'/{base}/?{query}')
 
-# ---- FUNCIÓN AUXILIAR PARA REDIRIGIR AL LISTADO DE INSTRUMENTOS ----
 def _back_to_instrument_list(request):
     base = 'inicioAdmin' if request.user.perfil.rol_id.nombre_rol.lower() == 'administrador' else 'inicioOperador'
     query = urlencode({'seccion': 'instrumento'})
     return redirect(f'/{base}/?{query}')
 
-# ---- FUNCIÓN AUXILIAR PARA REDIRIGIR AL LISTADO DE ROLES ----
 def _back_to_rol_list(request):
     base = 'inicioAdmin' if request.user.perfil.rol_id.nombre_rol.lower() == 'administrador' else 'inicioOperador'
     query = urlencode({'seccion': 'rol'})
     return redirect(f'/{base}/?{query}')
-
-# -----------------------------------------
 
 def login_usuario(request):
     if request.method == 'POST':
@@ -304,7 +297,6 @@ def get_redirect_url(request):
         pass
     return 'inicio'
 
-# ---------- CREAR CALIFICACIÓN (con validación) ----------
 @login_required
 def crear_calificacion(request):
     if request.method == 'POST':
@@ -336,17 +328,13 @@ def crear_calificacion(request):
                 accion='CREAR',
                 tabla='Calificacion',
                 cambios=f'Nuevo registro id={obj.calid}, monto={monto}, factor={factor}, periodo={periodo}',
-                fecha=date.today(),
-                ip=request.META.get('REMOTE_ADDR', ''),
-                firma=f'user:{request.user.id}',
-                usuario=request.user
+                request=request
             )
             messages.success(request, 'Calificación creada correctamente.')
         except Exception as e:
             messages.error(request, f'Datos incorrectos: {e}')
     return _back_to_cal_list(request)
 
-# ---------- CARGA MASIVA ----------
 @login_required
 def carga_masiva(request):
     if request.method == 'POST' and request.FILES.get('archivo'):
@@ -358,17 +346,13 @@ def carga_masiva(request):
                 accion='CARGA_MASIVA',
                 tabla='CargaMasiva',
                 cambios=f'Archivo id={obj.id_cm}',
-                fecha=date.today(),
-                ip=request.META.get('REMOTE_ADDR', ''),
-                firma=f'user:{request.user.id}',
-                usuario=request.user
+                request=request
             )
             messages.success(request, 'Archivo cargado y registrado.')
         except Exception as e:
             messages.error(request, f'Error en el archivo: {e}')
     return redirect(get_redirect_url(request))
 
-# ---------- GUARDAR CALIFICACIÓN (con validación) ----------
 @login_required
 def guardar_calificacion(request):
     if request.method == 'POST':
@@ -377,8 +361,8 @@ def guardar_calificacion(request):
             return actualizar_calificacion(request, calid)
 
         try:
-            monto   = float(request.POST.get('monto'))
-            factor  = float(request.POST.get('factor'))
+            monto = float(request.POST.get('monto'))
+            factor = float(request.POST.get('factor'))
             periodo = datetime.datetime.strptime(request.POST.get('periodo'), '%Y-%m').date()
 
             errores = validar_calificacion(monto, factor, periodo)
@@ -388,10 +372,10 @@ def guardar_calificacion(request):
                 return _back_to_cal_list(request)
 
             instru = InstrumentoNI.objects.get(pk=request.POST.get('instrumento'))
-            fv     = Factor_Val.objects.get(rango_minimo__lte=factor, rango_maximo__gte=factor)
+            fv = Factor_Val.objects.get(rango_minimo__lte=factor, rango_maximo__gte=factor)
 
             usuario_perfil = Usuario.objects.get(pk=request.POST.get('usuario_id_usuario'))
-            usuario_auth   = usuario_perfil.user_auth
+            usuario_auth = usuario_perfil.user_auth
 
             obj = Calificacion.objects.create(
                 monto=monto,
@@ -406,17 +390,13 @@ def guardar_calificacion(request):
                 accion='CREAR',
                 tabla='Calificacion',
                 cambios=f'Nuevo registro id={obj.calid}, monto={monto}, factor={factor}, periodo={periodo}',
-                fecha=date.today(),
-                ip=request.META.get('REMOTE_ADDR', ''),
-                firma=f'user:{request.user.id}',
-                usuario=request.user
+                request=request
             )
             messages.success(request, 'Calificación guardada.')
         except Exception as e:
             messages.error(request, f'Error: {e}')
     return _back_to_cal_list(request)
 
-# ---------- GUARDAR USUARIO ----------
 @login_required
 def guardar_usuario(request):
     if request.method == 'POST':
@@ -430,7 +410,6 @@ def guardar_usuario(request):
             email = request.POST.get('email')
             rol_id = request.POST.get('rol')
 
-            # Validación para operadores: no pueden crear administradores ni operadores
             if request.user.perfil.rol_id.nombre_rol.lower() == 'operador':
                 rol_obj = Rol.objects.get(pk=rol_id)
                 if rol_obj.nombre_rol.lower() in ['administrador', 'operador']:
@@ -456,17 +435,13 @@ def guardar_usuario(request):
                 accion='CREAR',
                 tabla='Usuario',
                 cambios=f'Nuevo usuario id={usuario.id_usuario}, nombre={nombre}, rol_id={rol_id}',
-                fecha=date.today(),
-                ip=request.META.get('REMOTE_ADDR', ''),
-                firma=f'user:{request.user.id}',
-                usuario=request.user
+                request=request
             )
             messages.success(request, 'Usuario creado correctamente.')
         except Exception as e:
             messages.error(request, f'Error: {e}')
     return _back_to_user_list(request)
 
-# ---------- GUARDAR INSTRUMENTO ----------
 @login_required
 def guardar_instrumento(request):
     if request.method == 'POST':
@@ -487,17 +462,13 @@ def guardar_instrumento(request):
                 accion='CREAR',
                 tabla='InstrumentoNI',
                 cambios=f'Nuevo instrumento id={obj.id_instru}, nombre={nombre}, estado={estado}',
-                fecha=date.today(),
-                ip=request.META.get('REMOTE_ADDR', ''),
-                firma=f'user:{request.user.id}',
-                usuario=request.user
+                request=request
             )
             messages.success(request, 'Instrumento creado.')
         except Exception as e:
             messages.error(request, f'Error: {e}')
     return _back_to_instrument_list(request)
 
-# ---------- GUARDAR ROL ----------
 @login_required
 def guardar_rol(request):
     if request.method == 'POST':
@@ -516,17 +487,13 @@ def guardar_rol(request):
                 accion='CREAR',
                 tabla='Rol',
                 cambios=f'Nuevo rol id={obj.id_rol}, nombre={nombre}',
-                fecha=date.today(),
-                ip=request.META.get('REMOTE_ADDR', ''),
-                firma=f'user:{request.user.id}',
-                usuario=request.user
+                request=request
             )
             messages.success(request, 'Rol creado.')
         except Exception as e:
             messages.error(request, f'Error: {e}')
     return _back_to_rol_list(request)
 
-# ---------- ELIMINAR ----------
 @login_required
 def eliminar_calificacion(request, calid):
     obj = get_object_or_404(Calificacion, calid=calid)
@@ -534,10 +501,7 @@ def eliminar_calificacion(request, calid):
         accion='ELIMINAR',
         tabla='Calificacion',
         cambios=f'Eliminada calificación id={calid}, instrumento={obj.instrumento.nombre}, monto={obj.monto}',
-        fecha=date.today(),
-        ip=request.META.get('REMOTE_ADDR', ''),
-        firma=f'user:{request.user.id}',
-        usuario=request.user
+        request=request
     )
     obj.delete()
     messages.success(request, 'Calificación eliminada.')
@@ -550,10 +514,7 @@ def eliminar_usuario(request, id_usuario):
         accion='ELIMINAR',
         tabla='Usuario',
         cambios=f'Eliminado usuario id={id_usuario}, nombre={obj.nombre}, rut={obj.rut}',
-        fecha=date.today(),
-        ip=request.META.get('REMOTE_ADDR', ''),
-        firma=f'user:{request.user.id}',
-        usuario=request.user
+        request=request
     )
     obj.delete()
     messages.success(request, 'Usuario eliminado.')
@@ -566,10 +527,7 @@ def eliminar_instrumento(request, id_instru):
         accion='ELIMINAR',
         tabla='InstrumentoNI',
         cambios=f'Eliminado instrumento id={id_instru}, nombre={obj.nombre}',
-        fecha=date.today(),
-        ip=request.META.get('REMOTE_ADDR', ''),
-        firma=f'user:{request.user.id}',
-        usuario=request.user
+        request=request
     )
     obj.delete()
     messages.success(request, 'Instrumento eliminado.')
@@ -582,10 +540,7 @@ def eliminar_rol(request, id_rol):
         accion='ELIMINAR',
         tabla='Rol',
         cambios=f'Eliminado rol id={id_rol}, nombre={obj.nombre_rol}',
-        fecha=date.today(),
-        ip=request.META.get('REMOTE_ADDR', ''),
-        firma=f'user:{request.user.id}',
-        usuario=request.user
+        request=request
     )
     obj.delete()
     messages.success(request, 'Rol eliminado.')
@@ -598,16 +553,12 @@ def eliminar_permiso(request, id_permiso):
         accion='ELIMINAR',
         tabla='Permiso',
         cambios=f'Eliminado permiso id={id_permiso}, nombre={obj.nombre}',
-        fecha=date.today(),
-        ip=request.META.get('REMOTE_ADDR', ''),
-        firma=f'user:{request.user.id}',
-        usuario=request.user
+        request=request
     )
     obj.delete()
     messages.success(request, 'Permiso eliminado correctamente.')
     return redirect(get_redirect_url(request))
 
-# ---------- GUARDAR PERMISO ----------
 @login_required
 def guardar_permiso(request):
     if request.method == 'POST':
@@ -621,10 +572,7 @@ def guardar_permiso(request):
                     accion='EDITAR',
                     tabla='Permiso',
                     cambios=f'Actualizado permiso id={pk}, nombre={nombre}',
-                    fecha=date.today(),
-                    ip=request.META.get('REMOTE_ADDR', ''),
-                    firma=f'user:{request.user.id}',
-                    usuario=request.user
+                    request=request
                 )
                 messages.success(request, 'Permiso actualizado.')
             else:
@@ -633,24 +581,46 @@ def guardar_permiso(request):
                     accion='CREAR',
                     tabla='Permiso',
                     cambios=f'Nuevo permiso id={obj.id_permiso}, nombre={nombre}',
-                    fecha=date.today(),
-                    ip=request.META.get('REMOTE_ADDR', ''),
-                    firma=f'user:{request.user.id}',
-                    usuario=request.user
+                    request=request
                 )
                 messages.success(request, 'Permiso creado.')
         except Exception as e:
             messages.error(request, f'Error: {e}')
     return redirect(get_redirect_url(request))
 
-# ---------- FILTRAR ----------
 @login_required
 def filtrar_calificaciones(request):
+    from django.db.models import Q
+    from datetime import datetime
+    qs = Calificacion.objects.select_related('instrumento', 'factor_val_id_factor', 'usuario_id_usuario__perfil')
+    try:
+        perfil = request.user.perfil
+        if perfil.rol_id.nombre_rol.lower() == 'cliente':
+            qs = qs.filter(usuario_id_usuario=request.user)
+    except Exception:
+        pass
     rut = request.GET.get('rut')
-    qs = Calificacion.objects.filter(
-        usuario_id_usuario__perfil__rut=rut,
-        estado='ACTIVO'
-    ).select_related('instrumento')
+    fecha = request.GET.get('fecha')
+    monto_min = request.GET.get('monto_min')
+    monto_max = request.GET.get('monto_max')
+    instrumento = request.GET.get('instrumento')
+    factor_val = request.GET.get('factor_val')
+    if rut:
+        qs = qs.filter(usuario_id_usuario__perfil__rut__icontains=rut)
+    if fecha:
+        try:
+            fecha_parsed = datetime.strptime(fecha, '%Y-%m').date()
+            qs = qs.filter(periodo=fecha_parsed)
+        except ValueError:
+            pass
+    if monto_min:
+        qs = qs.filter(monto__gte=float(monto_min))
+    if monto_max:
+        qs = qs.filter(monto__lte=float(monto_max))
+    if instrumento:
+        qs = qs.filter(instrumento__nombre__icontains=instrumento)
+    if factor_val:
+        qs = qs.filter(factor_val_id_factor__id_factor=factor_val)
     return render(request, 'filtrar_resultado.html', {'calificaciones': qs})
 
 @login_required
@@ -671,7 +641,6 @@ def logout_usuario(request):
 def principal(request):
     return render(request, 'principal.html')
 
-# ---------- ACTUALIZAR CALIFICACIÓN (con validación) ----------
 @login_required
 def actualizar_calificacion(request, calid):
     cal = get_object_or_404(Calificacion, calid=calid)
@@ -681,13 +650,11 @@ def actualizar_calificacion(request, calid):
             monto = float(request.POST.get('monto'))
             factor = float(request.POST.get('factor'))
             periodo = datetime.datetime.strptime(request.POST.get('periodo'), '%Y-%m').date()
-
             errores = validar_calificacion(monto, factor, periodo)
             if errores:
                 for e in errores:
                     messages.error(request, e)
                 return _back_to_cal_list(request)
-
             cal.monto = monto
             cal.factor = factor
             cal.periodo = periodo
@@ -701,10 +668,7 @@ def actualizar_calificacion(request, calid):
                 accion='EDITAR',
                 tabla='Calificacion',
                 cambios=f"Id={cal.calid} | Antes: {viejo}",
-                fecha=date.today(),
-                ip=request.META.get('REMOTE_ADDR', ''),
-                firma=f'user:{request.user.id}',
-                usuario=request.user
+                request=request
             )
             messages.success(request, 'Calificación actualizada correctamente.')
         except Exception as e:
@@ -712,7 +676,6 @@ def actualizar_calificacion(request, calid):
         return _back_to_cal_list(request)
     return redirect(get_redirect_url(request))
 
-# ---------- ACTUALIZAR USUARIO ----------
 @login_required
 def actualizar_usuario(request, id_usuario):
     usuario = get_object_or_404(Usuario, id_usuario=id_usuario)
@@ -724,20 +687,15 @@ def actualizar_usuario(request, id_usuario):
             usuario.email = request.POST.get('email')
             usuario.rol_id_id = request.POST.get('rol')
             usuario.save()
-
             user_auth = usuario.user_auth
             user_auth.nombre = usuario.nombre
             user_auth.email = usuario.email
             user_auth.save()
-
             Auditoria.registrar(
                 accion='EDITAR',
                 tabla='Usuario',
                 cambios=f"Id={id_usuario} | Antes: {viejo}",
-                fecha=date.today(),
-                ip=request.META.get('REMOTE_ADDR', ''),
-                firma=f'user:{request.user.id}',
-                usuario=request.user
+                request=request
             )
             messages.success(request, 'Usuario actualizado correctamente.')
         except Exception as e:
@@ -745,7 +703,6 @@ def actualizar_usuario(request, id_usuario):
         return _back_to_user_list(request)
     return redirect(get_redirect_url(request))
 
-# ---------- ACTUALIZAR INSTRUMENTO ----------
 @login_required
 def actualizar_instrumento(request, id_instru):
     instrumento = get_object_or_404(InstrumentoNI, id_instru=id_instru)
@@ -760,10 +717,7 @@ def actualizar_instrumento(request, id_instru):
                 accion='EDITAR',
                 tabla='InstrumentoNI',
                 cambios=f"Id={id_instru} | Antes: {viejo}",
-                fecha=date.today(),
-                ip=request.META.get('REMOTE_ADDR', ''),
-                firma=f'user:{request.user.id}',
-                usuario=request.user
+                request=request
             )
             messages.success(request, 'Instrumento actualizado correctamente.')
         except Exception as e:
@@ -771,7 +725,6 @@ def actualizar_instrumento(request, id_instru):
         return _back_to_instrument_list(request)
     return redirect(get_redirect_url(request))
 
-# ---------- ACTUALIZAR ROL ----------
 @login_required
 def actualizar_rol(request, id_rol):
     rol = get_object_or_404(Rol, id_rol=id_rol)
@@ -785,10 +738,7 @@ def actualizar_rol(request, id_rol):
                 accion='EDITAR',
                 tabla='Rol',
                 cambios=f"Id={id_rol} | Antes: {viejo}",
-                fecha=date.today(),
-                ip=request.META.get('REMOTE_ADDR', ''),
-                firma=f'user:{request.user.id}',
-                usuario=request.user
+                request=request
             )
             messages.success(request, 'Rol actualizado correctamente.')
         except Exception as e:
