@@ -1,3 +1,5 @@
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -56,6 +58,15 @@ def login_usuario(request):
             user = authenticate(request, username=usuario_input, password=password)
             if user is not None:
                 login(request, user)
+
+                # ✅ Registrar login exitoso en auditoría
+                Auditoria.registrar(
+                    accion='LOGIN',
+                    tabla='UserAuth',
+                    cambios=f'Usuario {user.email} ha iniciado sesión',
+                    request=request
+                )
+
                 try:
                     perfil = user.perfil
                     rol = perfil.rol_id.nombre_rol
@@ -64,6 +75,7 @@ def login_usuario(request):
                     perfil = None
                     rol = 'cliente'
                     nombre_mostrar = user.nombre
+
                 if rol.lower() == 'administrador':
                     messages.success(request, 'Bienvenido, Administrador')
                     return redirect('inicioAdmin')
@@ -74,6 +86,13 @@ def login_usuario(request):
                     messages.success(request, f'Bienvenido, {nombre_mostrar}')
                     return redirect('inicio')
             else:
+                # ✅ Registrar login fallido en auditoría
+                Auditoria.registrar(
+                    accion='LOGIN_FALLIDO',
+                    tabla='UserAuth',
+                    cambios=f'Intento fallido: {usuario_input}',
+                    request=request
+                )
                 logger.warning("Login fallido usuario=%s", usuario_input)
                 messages.error(request, 'Correo electrónico/nombre o contraseña incorrectos.')
     else:
@@ -408,7 +427,12 @@ def guardar_usuario(request):
             nombre = request.POST.get('nombre')
             rut = request.POST.get('rut')
             email = request.POST.get('email')
+            password = request.POST.get('password')
             rol_id = request.POST.get('rol')
+
+            if not password:
+                messages.error(request, 'Debes ingresar una contraseña.')
+                return _back_to_user_list(request)
 
             if request.user.perfil.rol_id.nombre_rol.lower() == 'operador':
                 rol_obj = Rol.objects.get(pk=rol_id)
@@ -416,11 +440,18 @@ def guardar_usuario(request):
                     messages.error(request, 'No puedes crear otros operadores o administradores. Solo puedes crear usuarios con rol Cliente')
                     return _back_to_user_list(request)
 
+            try:
+                validate_password(password)
+            except ValidationError as e:
+                messages.error(request, f'Contraseña inválida: {" ".join(e.messages)}')
+                return _back_to_user_list(request)
+
             user = UserAuth.objects.create_user(
                 nombre=nombre,
                 email=email,
-                password=rut
+                password=password
             )
+
             usuario = Usuario.objects.create(
                 user_auth=user,
                 nombre=nombre,
@@ -691,6 +722,23 @@ def actualizar_usuario(request, id_usuario):
             user_auth.nombre = usuario.nombre
             user_auth.email = usuario.email
             user_auth.save()
+
+            new_password = request.POST.get('password')
+            if new_password:
+                try:
+                    validate_password(new_password)
+                    user_auth.set_password(new_password)
+                    user_auth.save()
+                    Auditoria.registrar(
+                        accion='EDITAR',
+                        tabla='Usuario',
+                        cambios=f"Id={id_usuario} | Contraseña actualizada",
+                        request=request
+                    )
+                except ValidationError as e:
+                    messages.error(request, f'Contraseña inválida: {" ".join(e.messages)}')
+                    return _back_to_user_list(request)
+
             Auditoria.registrar(
                 accion='EDITAR',
                 tabla='Usuario',

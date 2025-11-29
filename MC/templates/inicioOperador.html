@@ -76,11 +76,7 @@
         {% csrf_token %}
         <label>Monto ($)</label><input type="number" step="0.01" name="monto" required>
         <label>Factor (%)</label><input type="number" step="0.01" name="factor" required>
-        <input type="month"
-       name="periodo"
-       max="{% now 'Y-m' %}"
-       value="{% now 'Y-m' %}"
-       required>
+        <input type="month" name="periodo" max="{% now 'Y-m' %}" value="{% now 'Y-m' %}" required>
         <label>Instrumento</label>
         <select name="instrumento" required>
           <option value="">-- Seleccione --</option>
@@ -149,6 +145,8 @@
         <label>Nombre</label><input type="text" name="nombre" required>
         <label>RUT (sin puntos, con guión)</label><input type="text" name="rut" required>
         <label>Email</label><input type="email" name="email" required>
+        <label>Contraseña</label>
+        <input type="password" name="password" required minlength="8" placeholder="Mínimo 8 caracteres">
         <label>Rol</label>
         <select name="rol" required>
           {% for r in roles %}<option value="{{ r.id_rol }}">{{ r.nombre_rol }}</option>{% endfor %}
@@ -185,6 +183,8 @@
         <label>Nombre</label><input type="text" name="nombre" value="{{ obj.nombre }}" required>
         <label>RUT</label><input type="text" name="rut" value="{{ obj.rut }}" required>
         <label>Email</label><input type="email" name="email" value="{{ obj.email }}" required>
+        <label>Nueva Contraseña (opcional)</label>
+        <input type="password" name="password" placeholder="Dejar vacío para mantener la actual">
         <label>Rol</label>
         <select name="rol" required>
           {% for r in roles %}<option value="{{ r.id_rol }}" {% if obj.rol_id.id_rol == r.id_rol %}selected{% endif %}>{{ r.nombre_rol }}</option>{% endfor %}
