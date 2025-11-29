@@ -116,6 +116,10 @@
   </div>
 
   <div class="btn-group">
+    <a href="?seccion=asignacion_permisos" class="btn">Asignación de Permisos</a>
+  </div>
+
+  <div class="btn-group">
     <a href="?seccion=filtrar" class="btn">Filtrar Calificaciones</a>
   </div>
 
@@ -407,6 +411,32 @@
         <label>Tipo de instrumento</label><input type="text" name="instrumento" placeholder="Ej: Bono">
         <label>Factor Val ID</label><input type="number" name="factor_val" placeholder="Ej: 1">
         <button type="submit" class="btn-success mt-3">Buscar</button>
+      </form>
+    </div>
+
+  {% elif seccion == 'asignacion_permisos' %}
+    <div class="card">
+      <h2>Asignar Permiso a Rol</h2>
+      <form method="post" action="{% url 'gestionar_asignacion_permisos' %}">
+        {% csrf_token %}
+        <label>Rol</label>
+        <select name="rol" required>
+          <option value="">-- Seleccione un rol --</option>
+          {% for r in roles %}
+            <option value="{{ r.id_rol }}">{{ r.nombre_rol }}</option>
+          {% endfor %}
+        </select>
+
+        <label>Permiso</label>
+        <select name="permiso" required>
+          <option value="">-- Seleccione un permiso --</option>
+          {% for p in permisos %}
+            <option value="{{ p.id_permiso }}">{{ p.nombre }}</option>
+          {% endfor %}
+        </select>
+
+        <input type="hidden" name="accion" value="crear">
+        <button type="submit" class="btn-success mt-3">Asignar Permiso</button>
       </form>
     </div>
   {% endif %}
