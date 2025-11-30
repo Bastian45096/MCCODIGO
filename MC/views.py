@@ -112,6 +112,24 @@ def inicioAdmin(request):
 
     obj = None
 
+    if seccion == 'asignacion_permisos_editacion':
+        asignaciones = RolPermiso.objects.select_related('rol', 'permiso').all()
+        roles = Rol.objects.all()
+        permisos = Permiso.objects.all()
+        return render(request, 'inicioAdmin.html', {
+            'instrumentos': instrumentos,
+            'roles': roles,
+            'usuarios': usuarios,
+            'calificaciones': calificaciones,
+            'permisos': permisos,
+            'factor_vals': factor_vals,
+            'seccion': seccion,
+            'accion': accion,
+            'obj': obj,
+            'obj_id': obj_id,
+            'asignaciones': asignaciones,
+        })
+
     if seccion == 'calificacion' and accion == 'editar' and obj_id:
         obj = Calificacion.objects.select_related('instrumento').get(calid=obj_id)
     elif seccion == 'usuario' and accion == 'editar' and obj_id:
@@ -234,7 +252,6 @@ def inicio(request):
     nombre_usuario = request.user.nombre
     calificaciones = []
     mensaje = None
-    rut_filtrado = None
     try:
         perfil = request.user.perfil
         rol_nombre = perfil.rol_id.nombre_rol
@@ -619,7 +636,6 @@ def guardar_permiso(request):
 
 @login_required
 def filtrar_calificaciones(request):
-    from django.db.models import Q
     from datetime import datetime
     qs = Calificacion.objects.select_related('instrumento', 'factor_val_id_factor', 'usuario_id_usuario__perfil')
     try:
@@ -628,520 +644,76 @@ def filtrar_calificaciones(request):
             qs = qs.filter(usuario_id_usuario=request.user)
     except Exception:
         pass
-    rut = request.GET.get('rut')
-    fecha = request.GET.get('fecha')
-    monto_min = request.GET.get('monto_min')
-    monto_max = request.GET.get('monto_max')
-    instrumento = request.GET.get('instrumento')
-    factor_val = request.GET.get('factor_val')
+
+    rut         = request.GET.get('rut', '').strip()
+    fecha       = request.GET.get('fecha', '').strip()
+    monto_min   = request.GET.get('monto_min', '').strip()
+    monto_max   = request.GET.get('monto_max', '').strip()
+    instrumento = request.GET.get('instrumento', '').strip()
+    factor_val  = request.GET.get('factor_val', '').strip()
+
+    errores = []
+
     if rut:
-        qs = qs.filter(usuario_id_usuario__perfil__rut__icontains=rut)
+        clean = re.sub(r'[^0-9kK]', '', rut.upper())
+        if len(clean) < 8 or len(clean) > 10:
+            errores.append("RUT inválido.")
+        else:
+            qs = qs.filter(usuario_id_usuario__perfil__rut__icontains=clean)
+
     if fecha:
         try:
             fecha_parsed = datetime.strptime(fecha, '%Y-%m').date()
             qs = qs.filter(periodo=fecha_parsed)
         except ValueError:
-            pass
+            errores.append("Formato de fecha inválido. Use AAAA-MM.")
+
     if monto_min:
-        qs = qs.filter(monto__gte=float(monto_min))
-    if monto_max:
-        qs = qs.filter(monto__lte=float(monto_max))
-    if instrumento:
-        qs = qs.filter(instrumento__nombre__icontains=instrumento)
-    if factor_val:
-        qs = qs.filter(factor_val_id_factor__id_factor=factor_val)
-    return render(request, 'filtrar_resultado.html', {'calificaciones': qs})
-
-@login_required
-def visualizar_usuarios(request):
-    operadores = Usuario.objects.filter(rol_id__nombre_rol__iexact='operador', activo='S')
-    clientes = Usuario.objects.filter(rol_id__nombre_rol__iexact='cliente', activo='S')
-    return render(request, 'visualizar_usuarios.html', {
-        'operadores': operadores,
-        'clientes': clientes,
-    })
-
-@login_required
-def logout_usuario(request):
-    logout(request)
-    messages.success(request, 'Has cerrado sesión correctamente.')
-    return redirect('login')
-
-def principal(request):
-    return render(request, 'principal.html')
-
-@login_required
-def actualizar_calificacion(request, calid):
-    cal = get_object_or_404(Calificacion, calid=calid)
-    if request.method == 'POST':
         try:
-            viejo = f"monto={cal.monto} factor={cal.factor} periodo={cal.periodo}"
-            monto = float(request.POST.get('monto'))
-            factor = float(request.POST.get('factor'))
-            periodo = datetime.datetime.strptime(request.POST.get('periodo'), '%Y-%m').date()
-            errores = validar_calificacion(monto, factor, periodo)
-            if errores:
-                for e in errores:
-                    messages.error(request, e)
-                return _back_to_cal_list(request)
-            cal.monto = monto
-            cal.factor = factor
-            cal.periodo = periodo
-            cal.instrumento = InstrumentoNI.objects.get(pk=request.POST.get('instrumento'))
-            cal.factor_val_id_factor = Factor_Val.objects.get(
-                rango_minimo__lte=factor,
-                rango_maximo__gte=factor
-            )
-            cal.save()
-            Auditoria.registrar(
-                accion='EDITAR',
-                tabla='Calificacion',
-                cambios=f"Id={cal.calid} | Antes: {viejo}",
-                request=request
-            )
-            messages.success(request, 'Calificación actualizada correctamente.')
-        except Exception as e:
-            messages.error(request, f'Error al actualizar calificación: {e}')
-        return _back_to_cal_list(request)
-    return redirect(get_redirect_url(request))
-
-@login_required
-def actualizar_usuario(request, id_usuario):
-    usuario = get_object_or_404(Usuario, id_usuario=id_usuario)
-    if request.method == 'POST':
-        try:
-            viejo = f"nombre={usuario.nombre} rut={usuario.rut} email={usuario.email} rol_id={usuario.rol_id_id}"
-            usuario.nombre = request.POST.get('nombre')
-            usuario.set_rut(request.POST.get('rut'))
-            usuario.email = request.POST.get('email')
-            usuario.rol_id_id = request.POST.get('rol')
-            usuario.save()
-            user_auth = usuario.user_auth
-            user_auth.nombre = usuario.nombre
-            user_auth.email = usuario.email
-            user_auth.save()
-
-            new_password = request.POST.get('password')
-            if new_password:
-                try:
-                    validate_password(new_password)
-                    user_auth.set_password(new_password)
-                    user_auth.save()
-                    Auditoria.registrar(
-                        accion='EDITAR',
-                        tabla='Usuario',
-                        cambios=f"Id={id_usuario} | Contraseña actualizada",
-                        request=request
-                    )
-                except ValidationError as e:
-                    messages.error(request, f'Contraseña inválida: {" ".join(e.messages)}')
-                    return _back_to_user_list(request)
-
-            Auditoria.registrar(
-                accion='EDITAR',
-                tabla='Usuario',
-                cambios=f"Id={id_usuario} | Antes: {viejo}",
-                request=request
-            )
-            messages.success(request, 'Usuario actualizado correctamente.')
-        except Exception as e:
-            messages.error(request, f'Error al actualizar usuario: {e}')
-        return _back_to_user_list(request)
-    return redirect(get_redirect_url(request))
-
-@login_required
-def actualizar_instrumento(request, id_instru):
-    instrumento = get_object_or_404(InstrumentoNI, id_instru=id_instru)
-    if request.method == 'POST':
-        try:
-            viejo = f"nombre={instrumento.nombre} estado={instrumento.estado}"
-            instrumento.nombre = request.POST.get('nombre')
-            instrumento.regla_es = request.POST.get('regla_es')
-            instrumento.estado = request.POST.get('estado')
-            instrumento.save()
-            Auditoria.registrar(
-                accion='EDITAR',
-                tabla='InstrumentoNI',
-                cambios=f"Id={id_instru} | Antes: {viejo}",
-                request=request
-            )
-            messages.success(request, 'Instrumento actualizado correctamente.')
-        except Exception as e:
-            messages.error(request, f'Error al actualizar instrumento: {e}')
-        return _back_to_instrument_list(request)
-    return redirect(get_redirect_url(request))
-
-@login_required
-def actualizar_rol(request, id_rol):
-    rol = get_object_or_404(Rol, id_rol=id_rol)
-    if request.method == 'POST':
-        try:
-            viejo = f"nombre={rol.nombre_rol} descripcion={rol.descripcion_rol}"
-            rol.nombre_rol = request.POST.get('nombre_rol')
-            rol.descripcion_rol = request.POST.get('descripcion_rol')
-            rol.save()
-            Auditoria.registrar(
-                accion='EDITAR',
-                tabla='Rol',
-                cambios=f"Id={id_rol} | Antes: {viejo}",
-                request=request
-            )
-            messages.success(request, 'Rol actualizado correctamente.')
-        except Exception as e:
-            messages.error(request, f'Error al actualizar rol: {e}')
-        return _back_to_rol_list(request)
-    return redirect(get_redirect_url(request))
-
-@login_required
-def eliminar_permiso(request, id_permiso):
-    obj = get_object_or_404(Permiso, id_permiso=id_permiso)
-    Auditoria.registrar(
-        accion='ELIMINAR',
-        tabla='Permiso',
-        cambios=f'Eliminado permiso id={id_permiso}, nombre={obj.nombre}',
-        request=request
-    )
-    obj.delete()
-    messages.success(request, 'Permiso eliminado correctamente.')
-    return redirect(get_redirect_url(request))
-
-@login_required
-def guardar_permiso(request):
-    if request.method == 'POST':
-        try:
-            pk = request.POST.get('id_permiso')
-            nombre = request.POST.get('nombre')
-            descripcion = request.POST.get('descripcion')
-            if pk:
-                Permiso.objects.filter(pk=pk).update(nombre=nombre, descripcion_permiso=descripcion)
-                Auditoria.registrar(
-                    accion='EDITAR',
-                    tabla='Permiso',
-                    cambios=f'Actualizado permiso id={pk}, nombre={nombre}',
-                    request=request
-                )
-                messages.success(request, 'Permiso actualizado.')
-            else:
-                obj = Permiso.objects.create(nombre=nombre, descripcion_permiso=descripcion)
-                Auditoria.registrar(
-                    accion='CREAR',
-                    tabla='Permiso',
-                    cambios=f'Nuevo permiso id={obj.id_permiso}, nombre={nombre}',
-                    request=request
-                )
-                messages.success(request, 'Permiso creado.')
-        except Exception as e:
-            messages.error(request, f'Error: {e}')
-    return redirect(get_redirect_url(request))
-
-@login_required
-def filtrar_calificaciones(request):
-    from django.db.models import Q
-    from datetime import datetime
-    qs = Calificacion.objects.select_related('instrumento', 'factor_val_id_factor', 'usuario_id_usuario__perfil')
-    try:
-        perfil = request.user.perfil
-        if perfil.rol_id.nombre_rol.lower() == 'cliente':
-            qs = qs.filter(usuario_id_usuario=request.user)
-    except Exception:
-        pass
-    rut = request.GET.get('rut')
-    fecha = request.GET.get('fecha')
-    monto_min = request.GET.get('monto_min')
-    monto_max = request.GET.get('monto_max')
-    instrumento = request.GET.get('instrumento')
-    factor_val = request.GET.get('factor_val')
-    if rut:
-        qs = qs.filter(usuario_id_usuario__perfil__rut__icontains=rut)
-    if fecha:
-        try:
-            fecha_parsed = datetime.strptime(fecha, '%Y-%m').date()
-            qs = qs.filter(periodo=fecha_parsed)
+            qs = qs.filter(monto__gte=float(monto_min))
         except ValueError:
-            pass
-    if monto_min:
-        qs = qs.filter(monto__gte=float(monto_min))
+            errores.append("Monto mínimo debe ser un número válido.")
     if monto_max:
-        qs = qs.filter(monto__lte=float(monto_max))
+        try:
+            qs = qs.filter(monto__lte=float(monto_max))
+        except ValueError:
+            errores.append("Monto máximo debe ser un número válido.")
+
     if instrumento:
         qs = qs.filter(instrumento__nombre__icontains=instrumento)
+
     if factor_val:
-        qs = qs.filter(factor_val_id_factor__id_factor=factor_val)
-    return render(request, 'filtrar_resultado.html', {'calificaciones': qs})
-
-@login_required
-def visualizar_usuarios(request):
-    operadores = Usuario.objects.filter(rol_id__nombre_rol__iexact='operador', activo='S')
-    clientes = Usuario.objects.filter(rol_id__nombre_rol__iexact='cliente', activo='S')
-    return render(request, 'visualizar_usuarios.html', {
-        'operadores': operadores,
-        'clientes': clientes,
-    })
-
-@login_required
-def logout_usuario(request):
-    logout(request)
-    messages.success(request, 'Has cerrado sesión correctamente.')
-    return redirect('login')
-
-def principal(request):
-    return render(request, 'principal.html')
-
-@login_required
-def actualizar_calificacion(request, calid):
-    cal = get_object_or_404(Calificacion, calid=calid)
-    if request.method == 'POST':
         try:
-            viejo = f"monto={cal.monto} factor={cal.factor} periodo={cal.periodo}"
-            monto = float(request.POST.get('monto'))
-            factor = float(request.POST.get('factor'))
-            periodo = datetime.datetime.strptime(request.POST.get('periodo'), '%Y-%m').date()
-            errores = validar_calificacion(monto, factor, periodo)
-            if errores:
-                for e in errores:
-                    messages.error(request, e)
-                return _back_to_cal_list(request)
-            cal.monto = monto
-            cal.factor = factor
-            cal.periodo = periodo
-            cal.instrumento = InstrumentoNI.objects.get(pk=request.POST.get('instrumento'))
-            cal.factor_val_id_factor = Factor_Val.objects.get(
-                rango_minimo__lte=factor,
-                rango_maximo__gte=factor
-            )
-            cal.save()
-            Auditoria.registrar(
-                accion='EDITAR',
-                tabla='Calificacion',
-                cambios=f"Id={cal.calid} | Antes: {viejo}",
-                request=request
-            )
-            messages.success(request, 'Calificación actualizada correctamente.')
-        except Exception as e:
-            messages.error(request, f'Error al actualizar calificación: {e}')
-        return _back_to_cal_list(request)
-    return redirect(get_redirect_url(request))
+            qs = qs.filter(factor_val_id_factor__id_factor=int(factor_val))
+        except ValueError:
+            errores.append("Factor Val debe ser un número entero.")
 
-@login_required
-def actualizar_usuario(request, id_usuario):
-    usuario = get_object_or_404(Usuario, id_usuario=id_usuario)
-    if request.method == 'POST':
-        try:
-            viejo = f"nombre={usuario.nombre} rut={usuario.rut} email={usuario.email} rol_id={usuario.rol_id_id}"
-            usuario.nombre = request.POST.get('nombre')
-            usuario.set_rut(request.POST.get('rut'))
-            usuario.email = request.POST.get('email')
-            usuario.rol_id_id = request.POST.get('rol')
-            usuario.save()
-            user_auth = usuario.user_auth
-            user_auth.nombre = usuario.nombre
-            user_auth.email = usuario.email
-            user_auth.save()
+    if errores:
+        for e in errores:
+            messages.error(request, e)
+        return redirect('/inicioAdmin/?seccion=filtrar')
 
-            new_password = request.POST.get('password')
-            if new_password:
-                try:
-                    validate_password(new_password)
-                    user_auth.set_password(new_password)
-                    user_auth.save()
-                    Auditoria.registrar(
-                        accion='EDITAR',
-                        tabla='Usuario',
-                        cambios=f"Id={id_usuario} | Contraseña actualizada",
-                        request=request
-                    )
-                except ValidationError as e:
-                    messages.error(request, f'Contraseña inválida: {" ".join(e.messages)}')
-                    return _back_to_user_list(request)
-
-            Auditoria.registrar(
-                accion='EDITAR',
-                tabla='Usuario',
-                cambios=f"Id={id_usuario} | Antes: {viejo}",
-                request=request
-            )
-            messages.success(request, 'Usuario actualizado correctamente.')
-        except Exception as e:
-            messages.error(request, f'Error al actualizar usuario: {e}')
-        return _back_to_user_list(request)
-    return redirect(get_redirect_url(request))
-
-@login_required
-def actualizar_instrumento(request, id_instru):
-    instrumento = get_object_or_404(InstrumentoNI, id_instru=id_instru)
-    if request.method == 'POST':
-        try:
-            viejo = f"nombre={instrumento.nombre} estado={instrumento.estado}"
-            instrumento.nombre = request.POST.get('nombre')
-            instrumento.regla_es = request.POST.get('regla_es')
-            instrumento.estado = request.POST.get('estado')
-            instrumento.save()
-            Auditoria.registrar(
-                accion='EDITAR',
-                tabla='InstrumentoNI',
-                cambios=f"Id={id_instru} | Antes: {viejo}",
-                request=request
-            )
-            messages.success(request, 'Instrumento actualizado correctamente.')
-        except Exception as e:
-            messages.error(request, f'Error al actualizar instrumento: {e}')
-        return _back_to_instrument_list(request)
-    return redirect(get_redirect_url(request))
-
-@login_required
-def actualizar_rol(request, id_rol):
-    rol = get_object_or_404(Rol, id_rol=id_rol)
-    if request.method == 'POST':
-        try:
-            viejo = f"nombre={rol.nombre_rol} descripcion={rol.descripcion_rol}"
-            rol.nombre_rol = request.POST.get('nombre_rol')
-            rol.descripcion_rol = request.POST.get('descripcion_rol')
-            rol.save()
-            Auditoria.registrar(
-                accion='EDITAR',
-                tabla='Rol',
-                cambios=f"Id={id_rol} | Antes: {viejo}",
-                request=request
-            )
-            messages.success(request, 'Rol actualizado correctamente.')
-        except Exception as e:
-            messages.error(request, f'Error al actualizar rol: {e}')
-        return _back_to_rol_list(request)
-    return redirect(get_redirect_url(request))
-
-@login_required
-def eliminar_calificacion(request, calid):
-    obj = get_object_or_404(Calificacion, calid=calid)
     Auditoria.registrar(
-        accion='ELIMINAR',
+        accion='FILTRAR',
         tabla='Calificacion',
-        cambios=f'Eliminada calificación id={calid}, instrumento={obj.instrumento.nombre}, monto={obj.monto}',
+        cambios=f'Filtro aplicado por usuario {request.user.email}',
         request=request
     )
-    obj.delete()
-    messages.success(request, 'Calificación eliminada.')
-    return redirect(get_redirect_url(request))
 
-@login_required
-def eliminar_usuario(request, id_usuario):
-    obj = get_object_or_404(Usuario, id_usuario=id_usuario)
-    Auditoria.registrar(
-        accion='ELIMINAR',
-        tabla='Usuario',
-        cambios=f'Eliminado usuario id={id_usuario}, nombre={obj.nombre}, rut={obj.rut}',
-        request=request
-    )
-    obj.delete()
-    messages.success(request, 'Usuario eliminado.')
-    return redirect(get_redirect_url(request))
-
-@login_required
-def eliminar_instrumento(request, id_instru):
-    obj = get_object_or_404(InstrumentoNI, id_instru=id_instru)
-    Auditoria.registrar(
-        accion='ELIMINAR',
-        tabla='InstrumentoNI',
-        cambios=f'Eliminado instrumento id={id_instru}, nombre={obj.nombre}',
-        request=request
-    )
-    obj.delete()
-    messages.success(request, 'Instrumento eliminado.')
-    return redirect(get_redirect_url(request))
-
-@login_required
-def eliminar_rol(request, id_rol):
-    obj = get_object_or_404(Rol, id_rol=id_rol)
-    Auditoria.registrar(
-        accion='ELIMINAR',
-        tabla='Rol',
-        cambios=f'Eliminado rol id={id_rol}, nombre={obj.nombre_rol}',
-        request=request
-    )
-    obj.delete()
-    messages.success(request, 'Rol eliminado.')
-    return redirect(get_redirect_url(request))
-
-@login_required
-def eliminar_permiso(request, id_permiso):
-    obj = get_object_or_404(Permiso, id_permiso=id_permiso)
-    Auditoria.registrar(
-        accion='ELIMINAR',
-        tabla='Permiso',
-        cambios=f'Eliminado permiso id={id_permiso}, nombre={obj.nombre}',
-        request=request
-    )
-    obj.delete()
-    messages.success(request, 'Permiso eliminado correctamente.')
-    return redirect(get_redirect_url(request))
-
-@login_required
-def guardar_permiso(request):
-    if request.method == 'POST':
-        try:
-            pk = request.POST.get('id_permiso')
-            nombre = request.POST.get('nombre')
-            descripcion = request.POST.get('descripcion')
-            if pk:
-                Permiso.objects.filter(pk=pk).update(nombre=nombre, descripcion_permiso=descripcion)
-                Auditoria.registrar(
-                    accion='EDITAR',
-                    tabla='Permiso',
-                    cambios=f'Actualizado permiso id={pk}, nombre={nombre}',
-                    request=request
-                )
-                messages.success(request, 'Permiso actualizado.')
-            else:
-                obj = Permiso.objects.create(nombre=nombre, descripcion_permiso=descripcion)
-                Auditoria.registrar(
-                    accion='CREAR',
-                    tabla='Permiso',
-                    cambios=f'Nuevo permiso id={obj.id_permiso}, nombre={nombre}',
-                    request=request
-                )
-                messages.success(request, 'Permiso creado.')
-        except Exception as e:
-            messages.error(request, f'Error: {e}')
-    return redirect(get_redirect_url(request))
-
-@login_required
-def filtrar_calificaciones(request):
-    from django.db.models import Q
-    from datetime import datetime
-    qs = Calificacion.objects.select_related('instrumento', 'factor_val_id_factor', 'usuario_id_usuario__perfil')
-    try:
-        perfil = request.user.perfil
-        if perfil.rol_id.nombre_rol.lower() == 'cliente':
-            qs = qs.filter(usuario_id_usuario=request.user)
-    except Exception:
-        pass
-    rut = request.GET.get('rut')
-    fecha = request.GET.get('fecha')
-    monto_min = request.GET.get('monto_min')
-    monto_max = request.GET.get('monto_max')
-    instrumento = request.GET.get('instrumento')
-    factor_val = request.GET.get('factor_val')
-    if rut:
-        qs = qs.filter(usuario_id_usuario__perfil__rut__icontains=rut)
-    if fecha:
-        try:
-            fecha_parsed = datetime.strptime(fecha, '%Y-%m').date()
-            qs = qs.filter(periodo=fecha_parsed)
-        except ValueError:
-            pass
-    if monto_min:
-        qs = qs.filter(monto__gte=float(monto_min))
-    if monto_max:
-        qs = qs.filter(monto__lte=float(monto_max))
-    if instrumento:
-        qs = qs.filter(instrumento__nombre__icontains=instrumento)
-    if factor_val:
-        qs = qs.filter(factor_val_id_factor__id_factor=factor_val)
     return render(request, 'filtrar_resultado.html', {'calificaciones': qs})
 
 @login_required
 def visualizar_usuarios(request):
     operadores = Usuario.objects.filter(rol_id__nombre_rol__iexact='operador', activo='S')
     clientes = Usuario.objects.filter(rol_id__nombre_rol__iexact='cliente', activo='S')
+
+    Auditoria.registrar(
+        accion='VISUALIZAR',
+        tabla='Usuario',
+        cambios=f'Visualización de usuarios por {request.user.email}',
+        request=request
+    )
+
     return render(request, 'visualizar_usuarios.html', {
         'operadores': operadores,
         'clientes': clientes,
@@ -1149,12 +721,140 @@ def visualizar_usuarios(request):
 
 @login_required
 def logout_usuario(request):
+    Auditoria.registrar(
+        accion='LOGOUT',
+        tabla='UserAuth',
+        cambios=f'Usuario {request.user.email} ha cerrado sesión',
+        request=request
+    )
     logout(request)
     messages.success(request, 'Has cerrado sesión correctamente.')
     return redirect('login')
 
 def principal(request):
     return render(request, 'principal.html')
+
+@login_required
+def actualizar_calificacion(request, calid):
+    cal = get_object_or_404(Calificacion, calid=calid)
+    if request.method == 'POST':
+        try:
+            viejo = f"monto={cal.monto} factor={cal.factor} periodo={cal.periodo}"
+            monto = float(request.POST.get('monto'))
+            factor = float(request.POST.get('factor'))
+            periodo = datetime.datetime.strptime(request.POST.get('periodo'), '%Y-%m').date()
+            errores = validar_calificacion(monto, factor, periodo)
+            if errores:
+                for e in errores:
+                    messages.error(request, e)
+                return _back_to_cal_list(request)
+            cal.monto = monto
+            cal.factor = factor
+            cal.periodo = periodo
+            cal.instrumento = InstrumentoNI.objects.get(pk=request.POST.get('instrumento'))
+            cal.factor_val_id_factor = Factor_Val.objects.get(
+                rango_minimo__lte=factor,
+                rango_maximo__gte=factor
+            )
+            cal.save()
+            Auditoria.registrar(
+                accion='EDITAR',
+                tabla='Calificacion',
+                cambios=f"Id={cal.calid} | Antes: {viejo}",
+                request=request
+            )
+            messages.success(request, 'Calificación actualizada correctamente.')
+        except Exception as e:
+            messages.error(request, f'Error al actualizar calificación: {e}')
+        return _back_to_cal_list(request)
+    return redirect(get_redirect_url(request))
+
+@login_required
+def actualizar_usuario(request, id_usuario):
+    usuario = get_object_or_404(Usuario, id_usuario=id_usuario)
+    if request.method == 'POST':
+        try:
+            viejo = f"nombre={usuario.nombre} rut={usuario.rut} email={usuario.email} rol_id={usuario.rol_id_id}"
+            usuario.nombre = request.POST.get('nombre')
+            usuario.set_rut(request.POST.get('rut'))
+            usuario.email = request.POST.get('email')
+            usuario.rol_id_id = request.POST.get('rol')
+            usuario.save()
+            user_auth = usuario.user_auth
+            user_auth.nombre = usuario.nombre
+            user_auth.email = usuario.email
+            user_auth.save()
+
+            new_password = request.POST.get('password')
+            if new_password:
+                try:
+                    validate_password(new_password)
+                    user_auth.set_password(new_password)
+                    user_auth.save()
+                    Auditoria.registrar(
+                        accion='EDITAR',
+                        tabla='Usuario',
+                        cambios=f"Id={id_usuario} | Contraseña actualizada",
+                        request=request
+                    )
+                except ValidationError as e:
+                    messages.error(request, f'Contraseña inválida: {" ".join(e.messages)}')
+                    return _back_to_user_list(request)
+
+            Auditoria.registrar(
+                accion='EDITAR',
+                tabla='Usuario',
+                cambios=f"Id={id_usuario} | Antes: {viejo}",
+                request=request
+            )
+            messages.success(request, 'Usuario actualizado correctamente.')
+        except Exception as e:
+            messages.error(request, f'Error al actualizar usuario: {e}')
+        return _back_to_user_list(request)
+    return redirect(get_redirect_url(request))
+
+@login_required
+def actualizar_instrumento(request, id_instru):
+    instrumento = get_object_or_404(InstrumentoNI, id_instru=id_instru)
+    if request.method == 'POST':
+        try:
+            viejo = f"nombre={instrumento.nombre} estado={instrumento.estado}"
+            instrumento.nombre = request.POST.get('nombre')
+            instrumento.regla_es = request.POST.get('regla_es')
+            instrumento.estado = request.POST.get('estado')
+            instrumento.save()
+            Auditoria.registrar(
+                accion='EDITAR',
+                tabla='InstrumentoNI',
+                cambios=f"Id={id_instru} | Antes: {viejo}",
+                request=request
+            )
+            messages.success(request, 'Instrumento actualizado correctamente.')
+        except Exception as e:
+            messages.error(request, f'Error al actualizar instrumento: {e}')
+        return _back_to_instrument_list(request)
+    return redirect(get_redirect_url(request))
+
+@login_required
+def actualizar_rol(request, id_rol):
+    rol = get_object_or_404(Rol, id_rol=id_rol)
+    if request.method == 'POST':
+        try:
+            viejo = f"nombre={rol.nombre_rol} descripcion={rol.descripcion_rol}"
+            rol.nombre_rol = request.POST.get('nombre_rol')
+            rol.descripcion_rol = request.POST.get('descripcion_rol')
+            rol.save()
+            Auditoria.registrar(
+                accion='EDITAR',
+                tabla='Rol',
+                cambios=f"Id={id_rol} | Antes: {viejo}",
+                request=request
+            )
+            messages.success(request, 'Rol actualizado correctamente.')
+        except Exception as e:
+            messages.error(request, f'Error al actualizar rol: {e}')
+        return _back_to_rol_list(request)
+    return redirect(get_redirect_url(request))
 
 @login_required
 def asignar_permisos(request):
@@ -1203,3 +903,57 @@ def asignar_permisos(request):
             messages.error(request, 'Acción no válida.')
 
     return redirect('/inicioAdmin/?seccion=asignacion_permisos')
+
+@login_required
+def asignar_permisos_editacion(request):
+    if request.method == 'POST':
+        asignacion_id = request.POST.get('asignacion_id')
+        nueva_accion = request.POST.get('accion')
+
+        asignacion = get_object_or_404(RolPermiso, pk=asignacion_id)
+
+        if nueva_accion == 'eliminar':
+            Auditoria.registrar(
+                accion='ELIMINAR',
+                tabla='RolPermiso',
+                cambios=f'Eliminada asignación id={asignacion_id} (rol={asignacion.rol.nombre_rol}, permiso={asignacion.permiso.nombre})',
+                request=request
+            )
+            asignacion.delete()
+            messages.success(request, 'Asignación eliminada correctamente.')
+
+        elif nueva_accion == 'editar':
+            nuevo_rol_id = request.POST.get('nuevo_rol')
+            nuevo_permiso_id = request.POST.get('nuevo_permiso')
+
+            cambios = []
+            if nuevo_rol_id and int(nuevo_rol_id) != asignacion.rol.id_rol:
+                nuevo_rol = get_object_or_404(Rol, pk=nuevo_rol_id)
+                cambios.append(f"rol:{asignacion.rol.nombre_rol}→{nuevo_rol.nombre_rol}")
+                asignacion.rol = nuevo_rol
+
+            if nuevo_permiso_id and int(nuevo_permiso_id) != asignacion.permiso.id_permiso:
+                nuevo_permiso = get_object_or_404(Permiso, pk=nuevo_permiso_id)
+                cambios.append(f"permiso:{asignacion.permiso.nombre}→{nuevo_permiso.nombre}")
+                asignacion.permiso = nuevo_permiso
+
+            if cambios:
+                asignacion.save()
+                Auditoria.registrar(
+                    accion='EDITAR',
+                    tabla='RolPermiso',
+                    cambios=f"Id={asignacion_id} | {' | '.join(cambios)}",
+                    request=request
+                )
+                messages.success(request, 'Asignación actualizada correctamente.')
+            else:
+                messages.info(request, 'No se realizaron cambios.')
+
+        return redirect('/inicioAdmin/?seccion=asignacion_permisos_editacion')
+
+    asignaciones = RolPermiso.objects.select_related('rol', 'permiso').all()
+    roles = Rol.objects.all()
+    permisos = Permiso.objects.all()
+    base = 'inicioAdmin' if request.user.perfil.rol_id.nombre_rol.lower() == 'administrador' else 'inicioOperador'
+    query = urlencode({'seccion': 'asignacion_permisos_editacion'})
+    return redirect(f'/{base}/?{query}')

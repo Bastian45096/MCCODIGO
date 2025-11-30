@@ -14,7 +14,7 @@
     .btn:hover{background-color:#cc0000;}
     .btn-outline-light{background:transparent;color:#ffffff;border:1px solid #ffffff;}
     .btn-outline-light:hover{background:#ffffff;color:#000000;}
-    .right-box{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;}
+    .right-box{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;}
     .card{width:90%;max-width:420px;background:rgba(0,0,0,0.6);border-radius:12px;padding:30px;display:flex;flex-direction:column;gap:15px;}
     .card h2{font-size:22px;text-align:center;margin-bottom:10px;}
     label{font-size:14px;margin-bottom:4px;}
@@ -30,6 +30,22 @@
     .btn-edit{background-color:#0dcaf0;color:#000000;padding:6px 12px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;transition:background-color 0.3s ease;}
     .btn-edit:hover{background-color:#0aa5c0;}
     @media(max-width:768px){body{flex-direction:column;}.left-box{width:100%;height:auto;}}
+
+    /* Scrollbar personalizado */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 5px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
   </style>
 </head>
 <body>
@@ -143,7 +159,7 @@
       <form method="post" action="{% url 'guardar_usuario' %}">
         {% csrf_token %}
         <label>Nombre</label><input type="text" name="nombre" required>
-        <label>RUT (sin puntos, con guión)</label><input type="text" name="rut" required>
+        <label>RUT (sin puntos, con guión)</label><input type="text" name="rut" class="solo-rut" required>
         <label>Email</label><input type="email" name="email" required>
         <label>Contraseña</label>
         <input type="password" name="password" required minlength="8" placeholder="Mínimo 8 caracteres">
@@ -181,7 +197,7 @@
         {% csrf_token %}
         <input type="hidden" name="id_usuario" value="{{ obj.id_usuario }}">
         <label>Nombre</label><input type="text" name="nombre" value="{{ obj.nombre }}" required>
-        <label>RUT</label><input type="text" name="rut" value="{{ obj.rut }}" required>
+        <label>RUT</label><input type="text" name="rut" value="{{ obj.rut }}" class="solo-rut" required>
         <label>Email</label><input type="email" name="email" value="{{ obj.email }}" required>
         <label>Nueva Contraseña (opcional)</label>
         <input type="password" name="password" placeholder="Dejar vacío para mantener la actual">
@@ -199,7 +215,7 @@
       <form method="post" action="{% url 'guardar_instrumento' %}">
         {% csrf_token %}
         <label>Nombre</label><input type="text" name="nombre" required>
-        <label>Regla</label><textarea name="regla_es" class="form-control" rows="3" required></textarea>
+        <label>Regla</label><textarea name="regla_es" class="solo-alphanumeric" rows="3" required></textarea>
         <label>Estado</label>
         <select name="estado" required>
           <option value="ACTIVO">ACTIVO</option>
@@ -234,7 +250,7 @@
         {% csrf_token %}
         <input type="hidden" name="id_instru" value="{{ obj.id_instru }}">
         <label>Nombre</label><input type="text" name="nombre" value="{{ obj.nombre }}" required>
-        <label>Regla</label><textarea name="regla_es" class="form-control" rows="3" required>{{ obj.regla_es }}</textarea>
+        <label>Regla</label><textarea name="regla_es" class="solo-alphanumeric" rows="3" required>{{ obj.regla_es }}</textarea>
         <label>Estado</label>
         <select name="estado" required>
           <option value="ACTIVO" {% if obj.estado == 'ACTIVO' %}selected{% endif %}>ACTIVO</option>
@@ -259,6 +275,22 @@
     </div>
   {% endif %}
 </div>
+
+<script>
+  // Validación para RUT (permitir números, guión y k/K)
+  document.querySelectorAll('.solo-rut').forEach(function(inp) {
+    inp.addEventListener('input', function() {
+      this.value = this.value.replace(/[^0-9kK-]/g, '');
+    });
+  });
+
+  // Validación para Regla (permitir solo letras y números)
+  document.querySelectorAll('.solo-alphanumeric').forEach(function(inp) {
+    inp.addEventListener('input', function() {
+      this.value = this.value.replace(/[^a-zA-Z0-9]/g, '');
+    });
+  });
+</script>
 
 </body>
 </html>

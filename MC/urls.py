@@ -33,6 +33,7 @@ urlpatterns = [
     path('logout/', views.logout_usuario, name='logout'),
     path('', views.principal, name='principal'),
     path('gestionar_asignacion_permisos/', views.asignar_permisos, name='gestionar_asignacion_permisos'),
+    path('gestionar_asignacion_permisos_editacion/', views.asignar_permisos_editacion, name='gestionar_asignacion_permisos_editacion'),
 
     path('admin/', admin.site.urls),
 ]

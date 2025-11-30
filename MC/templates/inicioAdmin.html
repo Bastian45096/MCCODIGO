@@ -44,7 +44,7 @@
     }
     .right-box{
       flex:1;display:flex;align-items:flex-start;justify-content:center;
-      padding:40px 20px;
+      padding:40px 20px; overflow-y:auto;
     }
     .card{
       width:90%;max-width:420px;
@@ -83,6 +83,21 @@
     .sql-cell{flex:1;font-size:14px;line-height:1.5;}
     .sql-action{display:flex;gap:10px;}
     @media(max-width:768px){body{flex-direction:column;}.left-box{width:100%;height:auto;}}
+
+    /* =====  Scroll personalizado (estilo 2)  ===== */
+    ::-webkit-scrollbar{
+      width:12px;
+    }
+    ::-webkit-scrollbar-track{
+      background:#111;
+    }
+    ::-webkit-scrollbar-thumb{
+      background:#ff0000;
+      border-radius:6px;
+    }
+    ::-webkit-scrollbar-thumb:hover{
+      background:#c82333;
+    }
   </style>
 </head>
 <body>
@@ -120,6 +135,10 @@
   </div>
 
   <div class="btn-group">
+    <a href="?seccion=asignacion_permisos_editacion" class="btn">Editar Asignaciones</a>
+  </div>
+
+  <div class="btn-group">
     <a href="?seccion=filtrar" class="btn">Filtrar Calificaciones</a>
   </div>
 
@@ -146,8 +165,8 @@
       <form method="post" action="{% url 'guardar_calificacion' %}">
         {% csrf_token %}
         <input type="hidden" name="usuario_id_usuario" value="{{ request.user.id }}">
-        <label>Monto ($)</label><input type="number" step="0.01" name="monto" required>
-        <label>Factor (%)</label><input type="number" step="0.01" name="factor" required>
+        <label>Monto ($)</label><input type="text" name="monto" class="solo-float" required>
+        <label>Factor (%)</label><input type="text" name="factor" class="solo-float" required>
         <label>Período</label><input type="month" name="periodo" max="{{hoy|date:'Y-m'}}" required>
         <label>Instrumento</label>
         <select name="instrumento" required>
@@ -198,8 +217,8 @@
       <h2>Editar Calificación</h2>
       <form method="post" action="{% url 'actualizar_calificacion' obj.calid %}">
         {% csrf_token %}
-        <label>Monto ($)</label><input type="number" step="0.01" name="monto" value="{{ obj.monto }}" required>
-        <label>Factor (%)</label><input type="number" step="0.01" name="factor" value="{{ obj.factor }}" required>
+        <label>Monto ($)</label><input type="text" name="monto" value="{{ obj.monto }}" class="solo-float" required>
+        <label>Factor (%)</label><input type="text" name="factor" value="{{ obj.factor }}" class="solo-float" required>
         <label>Período</label><input type="month" name="periodo" value="{{ obj.periodo|date:'Y-m' }}" required>
         <label>Instrumento</label>
         <select name="instrumento" required>
@@ -214,8 +233,8 @@
       <h2>Crear Usuario</h2>
       <form method="post" action="{% url 'guardar_usuario' %}">
         {% csrf_token %}
-        <label>Nombre</label><input type="text" name="nombre" required>
-        <label>RUT (sin puntos, con guión)</label><input type="text" name="rut" required>
+        <label>Nombre</label><input type="text" name="nombre" class="solo-texto" required>
+        <label>RUT (sin puntos, con guión)</label><input type="text" name="rut" class="solo-rut" required>
         <label>Email</label><input type="email" name="email" required>
         <label>Contraseña</label>
         <input type="password" name="password" required minlength="8" placeholder="Mínimo 8 caracteres">
@@ -252,8 +271,8 @@
       <h2>Editar Usuario</h2>
       <form method="post" action="{% url 'actualizar_usuario' obj.id_usuario %}">
         {% csrf_token %}
-        <label>Nombre</label><input type="text" name="nombre" value="{{ obj.nombre }}" required>
-        <label>RUT (sin puntos, con guión)</label><input type="text" name="rut" value="{{ obj.rut }}" required>
+        <label>Nombre</label><input type="text" name="nombre" value="{{ obj.nombre }}" class="solo-texto" required>
+        <label>RUT (sin puntos, con guión)</label><input type="text" name="rut" value="{{ obj.rut }}" class="solo-rut" required>
         <label>Email</label><input type="email" name="email" value="{{ obj.email }}" required>
         <label>Nueva Contraseña (opcional)</label>
         <input type="password" name="password" placeholder="Dejar vacío para mantener la actual">
@@ -270,7 +289,7 @@
       <h2>Crear Instrumento</h2>
       <form method="post" action="{% url 'guardar_instrumento' %}">
         {% csrf_token %}
-        <label>Nombre</label><input type="text" name="nombre" required>
+        <label>Nombre</label><input type="text" name="nombre" class="solo-texto" required>
         <label>Regla</label><textarea name="regla_es" class="form-control" rows="3" required></textarea>
         <label>Estado</label>
         <select name="estado" required>
@@ -305,7 +324,7 @@
       <h2>Editar Instrumento</h2>
       <form method="post" action="{% url 'actualizar_instrumento' obj.id_instru %}">
         {% csrf_token %}
-        <label>Nombre</label><input type="text" name="nombre" value="{{ obj.nombre }}" required>
+        <label>Nombre</label><input type="text" name="nombre" value="{{ obj.nombre }}" class="solo-texto" required>
         <label>Regla</label><textarea name="regla_es" class="form-control" rows="3" required>{{ obj.regla_es }}</textarea>
         <label>Estado</label>
         <select name="estado" required>
@@ -321,8 +340,8 @@
       <h2>Crear Rol</h2>
       <form method="post" action="{% url 'guardar_rol' %}">
         {% csrf_token %}
-        <label>Nombre del Rol</label><input type="text" name="nombre_rol" required>
-        <label>Descripción</label><textarea name="descripcion_rol" class="form-control" rows="3" required></textarea>
+        <label>Nombre del Rol</label><input type="text" name="nombre_rol" class="solo-texto" required>
+        <label>Descripción</label><textarea name="descripcion_rol" class="form-control solo-texto" rows="3" required></textarea>
         <button type="submit" class="btn-success mt-3">Crear Rol</button>
       </form>
     </div>
@@ -352,8 +371,8 @@
       <form method="post" action="{% url 'guardar_rol' %}">
         {% csrf_token %}
         <input type="hidden" name="id_rol" value="{{ obj.id_rol }}">
-        <label>Nombre del Rol</label><input type="text" name="nombre_rol" value="{{ obj.nombre_rol }}" required>
-        <label>Descripción</label><textarea name="descripcion_rol" class="form-control" rows="3" required>{{ obj.descripcion_rol }}</textarea>
+        <label>Nombre del Rol</label><input type="text" name="nombre_rol" value="{{ obj.nombre_rol }}" class="solo-texto" required>
+        <label>Descripción</label><textarea name="descripcion_rol" class="form-control solo-texto" rows="3" required>{{ obj.descripcion_rol }}</textarea>
         <button type="submit" class="btn-success mt-3">Guardar cambios</button>
       </form>
     </div>
@@ -363,8 +382,8 @@
       <h2>Crear Permiso</h2>
       <form method="post" action="{% url 'guardar_permiso' %}">
         {% csrf_token %}
-        <label>Nombre del Permiso</label><input type="text" name="nombre" required>
-        <label>Descripción</label><textarea name="descripcion" class="form-control" rows="3" required></textarea>
+        <label>Nombre del Permiso</label><input type="text" name="nombre" class="solo-texto" required>
+        <label>Descripción</label><textarea name="descripcion" class="form-control solo-texto" rows="3" required></textarea>
         <button type="submit" class="btn-success mt-3">Crear Permiso</button>
       </form>
     </div>
@@ -394,8 +413,8 @@
       <form method="post" action="{% url 'guardar_permiso' %}">
         {% csrf_token %}
         <input type="hidden" name="id_permiso" value="{{ obj.id_permiso }}">
-        <label>Nombre del Permiso</label><input type="text" name="nombre" value="{{ obj.nombre }}" required>
-        <label>Descripción</label><textarea name="descripcion" class="form-control" rows="3" required>{{ obj.descripcion_permiso }}</textarea>
+        <label>Nombre del Permiso</label><input type="text" name="nombre" value="{{ obj.nombre }}" class="solo-texto" required>
+        <label>Descripción</label><textarea name="descripcion" class="form-control solo-texto" rows="3" required>{{ obj.descripcion_permiso }}</textarea>
         <button type="submit" class="btn-success mt-3">Guardar cambios</button>
       </form>
     </div>
@@ -406,9 +425,9 @@
       <form method="get" action="{% url 'filtrar_calificaciones' %}">
         <label>RUT (sin puntos, con guión)</label><input type="text" name="rut">
         <label>Fecha (período)</label><input type="month" name="fecha">
-        <label>Monto mínimo</label><input type="number" step="0.01" name="monto_min" placeholder="0">
-        <label>Monto máximo</label><input type="number" step="0.01" name="monto_max" placeholder="999999999">
-        <label>Tipo de instrumento</label><input type="text" name="instrumento" placeholder="Ej: Bono">
+        <label>Monto mínimo</label><input type="text" name="monto_min" placeholder="0" class="solo-float">
+        <label>Monto máximo</label><input type="text" name="monto_max" placeholder="999999999" class="solo-float">
+        <label>Tipo de instrumento</label><input type="text" name="instrumento" placeholder="Ej: Bono" class="solo-texto">
         <label>Factor Val ID</label><input type="number" name="factor_val" placeholder="Ej: 1">
         <button type="submit" class="btn-success mt-3">Buscar</button>
       </form>
@@ -439,8 +458,94 @@
         <button type="submit" class="btn-success mt-3">Asignar Permiso</button>
       </form>
     </div>
+
+  {% elif seccion == 'asignacion_permisos_editacion' %}
+    <div class="card">
+      <h2>Editar / Eliminar Asignaciones de Permisos</h2>
+      <div class="sql-table">
+        {% for a in asignaciones %}
+          <div class="sql-row">
+            <form method="post" action="{% url 'gestionar_asignacion_permisos_editacion' %}" style="width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+              {% csrf_token %}
+              <input type="hidden" name="asignacion_id" value="{{ a.id }}">
+              <input type="hidden" name="accion" value="editar">
+
+              <div class="sql-cell" style="flex:1;">
+                <label>Rol</label><br>
+                <select name="nuevo_rol" style="width:100%;">
+                  {% for r in roles %}
+                    <option value="{{ r.id_rol }}" {% if r.id_rol == a.rol.id_rol %}selected{% endif %}>{{ r.nombre_rol }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="sql-cell" style="flex:1;">
+                <label>Permiso</label><br>
+                <select name="nuevo_permiso" style="width:100%;">
+                  {% for p in permisos %}
+                    <option value="{{ p.id_permiso }}" {% if p.id_permiso == a.permiso.id_permiso %}selected{% endif %}>{{ p.nombre }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="sql-action" style="display:flex;gap:6px;">
+                <button type="submit" class="btn" title="Guardar cambios">💾</button>
+                <button type="submit" formaction="{% url 'gestionar_asignacion_permisos_editacion' %}?accion=eliminar" name="accion" value="eliminar" class="btn-danger" title="Eliminar asignación" onclick="return confirm('¿Estás seguro de eliminar esta asignación?')">🗑️</button>
+              </div>
+            </form>
+          </div>
+        {% empty %}
+          <p style="color:#ccc;">No hay asignaciones creadas aún.</p>
+        {% endfor %}
+      </div>
+    </div>
   {% endif %}
 </div>
+
+<script>
+// ---------- TEXTOS: letras y espacios, sin números, no vacío ----------
+document.querySelectorAll('.solo-texto').forEach(function(inp){
+  inp.addEventListener('input', function(){
+    this.value = this.value.replace(/[0-9]/g, '');
+  });
+  inp.addEventListener('blur', function(){
+    this.value = this.value.trim();
+    if (this.value === '') {
+      this.setCustomValidity('Campo obligatorio (no solo espacios)');
+    } else {
+      this.setCustomValidity('');
+    }
+  });
+});
+
+// ---------- FLOATS: solo números, punto, sin letras, sin negativos ----------
+document.querySelectorAll('.solo-float').forEach(function(inp){
+  inp.addEventListener('input', function(){
+    let v = this.value;
+    v = v.replace(/[^0-9.]/g, '');
+    let parts = v.split('.');
+    if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+    if (v.startsWith('.')) v = '0' + v;
+    if (v.startsWith('-')) v = v.slice(1);
+    this.value = v;
+  });
+  inp.addEventListener('blur', function(){
+    let n = parseFloat(this.value);
+    if (isNaN(n) || n < 0) {
+      this.setCustomValidity('Número positivo obligatorio');
+    } else {
+      this.setCustomValidity('');
+    }
+  });
+});
+
+// ---------- RUT: solo números y k/K ----------
+document.querySelectorAll('.solo-rut').forEach(function(inp){
+  inp.addEventListener('input', function(){
+    this.value = this.value.replace(/[^0-9kK-]/g, '');
+  });
+});
+</script>
 
 </body>
 </html>
