@@ -127,10 +127,10 @@ class InstrumentoNI(models.Model):
 
 class Factor_Val(models.Model):
     id_factor = models.AutoField(primary_key=True)
-    rango_minimo = models.DecimalField(max_digits=12, decimal_places=4)
-    rango_maximo = models.DecimalField(max_digits=12, decimal_places=4)
+    rango_minimo = models.DecimalField(max_digits=12, decimal_places=1)
+    rango_maximo = models.DecimalField(max_digits=12, decimal_places=1)
     descripcion = models.TextField(blank=True)
-
+    
     def clean(self):
         if self.rango_minimo >= self.rango_maximo:
             raise ValidationError("El rango mínimo debe ser inferior al rango máximo.")

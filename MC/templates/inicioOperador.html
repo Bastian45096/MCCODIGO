@@ -91,7 +91,7 @@
       <form method="post" action="{% url 'guardar_calificacion' %}">
         {% csrf_token %}
         <label>Monto ($)</label><input type="number" step="0.01" name="monto" required>
-        <label>Factor (%)</label><input type="number" step="0.01" name="factor" required>
+        <label>Factor (%)</label><input type="number" step="0.01" name="factor" min="0" oninput="if(this.value<0)this.value=''" required>
         <input type="month" name="periodo" max="{% now 'Y-m' %}" value="{% now 'Y-m' %}" required>
         <label>Instrumento</label>
         <select name="instrumento" required>
@@ -143,7 +143,7 @@
         {% csrf_token %}
         <input type="hidden" name="calid" value="{{ obj.calid }}">
         <label>Monto ($)</label><input type="number" step="0.01" name="monto" value="{{ obj.monto }}" required>
-        <label>Factor (%)</label><input type="number" step="0.01" name="factor" value="{{ obj.factor }}" required>
+        <label>Factor (%)</label><input type="number" step="0.01" name="factor" value="{{ obj.factor }}" min="0" oninput="if(this.value<0)this.value=''" required>
         <label>Período</label><input type="month" name="periodo" value="{{ obj.periodo|date:'Y-m' }}" required>
         <label>Instrumento</label>
         <select name="instrumento" required>
@@ -277,17 +277,27 @@
 </div>
 
 <script>
-  // Validación para RUT (permitir números, guión y k/K)
   document.querySelectorAll('.solo-rut').forEach(function(inp) {
     inp.addEventListener('input', function() {
       this.value = this.value.replace(/[^0-9kK-]/g, '');
     });
   });
 
-  // Validación para Regla (permitir solo letras y números)
   document.querySelectorAll('.solo-alphanumeric').forEach(function(inp) {
     inp.addEventListener('input', function() {
-      this.value = this.value.replace(/[^a-zA-Z0-9]/g, '');
+      this.value = this.value.replace(/[^a-zA-Z0-9 ]/g, '');
+    });
+  });
+
+  document.querySelectorAll('input[name="factor"]').forEach(function(inp) {
+    inp.addEventListener('input', function() {
+      this.value = this.value.replace(/[-?]/g, '');
+    });
+  });
+
+  document.querySelectorAll('input[name="monto"]').forEach(function(inp) {
+    inp.addEventListener('input', function() {
+      this.value = this.value.replace(/[-?]/g, '');
     });
   });
 </script>
