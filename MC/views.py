@@ -140,6 +140,8 @@ def inicioAdmin(request):
         obj = Rol.objects.get(id_rol=obj_id)
     elif seccion == 'permiso' and accion == 'editar' and obj_id:
         obj = Permiso.objects.get(id_permiso=obj_id)
+    elif seccion == 'factorval' and accion == 'editar' and obj_id:
+        obj = Factor_Val.objects.get(id_factor=obj_id)
     elif seccion == 'usuario' and accion == 'crear':
         return render(request, 'inicioAdmin.html', {
             'instrumentos': instrumentos,
@@ -957,3 +959,98 @@ def asignar_permisos_editacion(request):
     base = 'inicioAdmin' if request.user.perfil.rol_id.nombre_rol.lower() == 'administrador' else 'inicioOperador'
     query = urlencode({'seccion': 'asignacion_permisos_editacion'})
     return redirect(f'/{base}/?{query}')
+
+
+
+# ===== CREAR =====
+@login_required
+def crear_factorv(request):
+    if request.method == 'POST':
+        try:
+            rango_minimo = float(request.POST.get('rango_minimo'))
+            rango_maximo = float(request.POST.get('rango_maximo'))
+            if rango_maximo <= rango_minimo:
+                messages.error(request, 'El rango máximo debe ser mayor que el mínimo.')
+                return redirect('inicioAdmin')
+
+            factor = Factor_Val.objects.create(rango_minimo=rango_minimo, rango_maximo=rango_maximo)
+
+            Auditoria.registrar(
+                accion='CREAR',
+                tabla='Factor_Val',
+                cambios=f'Nuevo registro id={factor.id_factor}, rango_minimo={rango_minimo}, rango_maximo={rango_maximo}',
+                request=request
+            )
+
+            messages.success(request, 'FactorVal creado correctamente.')
+        except Exception as e:
+            messages.error(request, f'Error: {e}')
+        return redirect('inicioAdmin')
+    return redirect('inicioAdmin')
+
+
+# ===== LISTAR / SELECCIONAR PARA EDITAR =====
+@login_required
+def editar_factorv(request):
+    factor_vals = Factor_Val.objects.all()
+    obj = None
+    obj_id = request.GET.get('obj_id')
+    if obj_id:
+        obj = get_object_or_404(Factor_Val, id_factor=obj_id)
+    return render(request, 'inicioAdmin.html', {
+        'seccion': 'factorval',
+        'accion': 'editar',
+        'factor_vals': factor_vals,
+        'obj': obj,
+        'obj_id': obj_id,
+    })
+
+
+# ===== ACTUALIZAR =====
+@login_required
+def actualizar_factorv(request, id_factor):
+    factor = get_object_or_404(Factor_Val, id_factor=id_factor)
+    if request.method == 'POST':
+        try:
+            viejo = f'rango_minimo={factor.rango_minimo}, rango_maximo={factor.rango_maximo}'
+            rango_minimo = float(request.POST.get('rango_minimo'))
+            rango_maximo = float(request.POST.get('rango_maximo'))
+            if rango_maximo <= rango_minimo:
+                messages.error(request, 'El rango máximo debe ser mayor que el mínimo.')
+                return redirect('editar_factorv')
+
+            factor.rango_minimo = rango_minimo
+            factor.rango_maximo = rango_maximo
+            factor.save()
+
+            nuevo = f'rango_minimo={factor.rango_minimo}, rango_maximo={factor.rango_maximo}'
+            Auditoria.registrar(
+                accion='EDITAR',
+                tabla='Factor_Val',
+                cambios=f'Id={factor.id_factor} | Antes: {viejo} → Después: {nuevo}',
+                request=request
+            )
+
+            messages.success(request, 'FactorVal actualizado correctamente.')
+        except Exception as e:
+            messages.error(request, f'Error: {e}')
+        return redirect('editar_factorv')
+    return redirect('editar_factorv')
+
+
+# ===== ELIMINAR =====
+@login_required
+def eliminar_factorv(request, id_factor):
+    factor = get_object_or_404(Factor_Val, id_factor=id_factor)
+    viejo = f'rango_minimo={factor.rango_minimo}, rango_maximo={factor.rango_maximo}'
+
+    Auditoria.registrar(
+        accion='ELIMINAR',
+        tabla='Factor_Val',
+        cambios=f'Id={factor.id_factor} | {viejo}',
+        request=request
+    )
+
+    factor.delete()
+    messages.success(request, 'FactorVal eliminado correctamente.')
+    return redirect('editar_factorv')

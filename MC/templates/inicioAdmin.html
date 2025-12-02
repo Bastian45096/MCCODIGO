@@ -47,16 +47,17 @@
       padding:40px 20px; overflow-y:auto;
     }
     .card{
-      width:90%;max-width:420px;
+      width:90%;max-width:600px;
       background:rgba(0,0,0,.6);
       border-radius:12px;padding:30px;
-      color:#fff;display:flex;flex-direction:column;gap:15px;
+      color:#fff;display:flex;flex-direction:column;gap:20px;
     }
     .card h2{font-size:22px;text-align:center;margin-bottom:10px;}
     label{font-size:14px;margin-bottom:4px;}
     input,select,textarea{
-      width:100%;height:48px;border:none;border-radius:8px;
-      padding:0 15px;font-size:16px;
+      width:100%;border:none;border-radius:8px;
+      padding:10px 15px;
+      font-size:16px;
       background:rgba(255,255,255,.1);color:#fff;outline:none;
     }
     input::placeholder{color:#ccc;}
@@ -136,6 +137,11 @@
 
   <div class="btn-group">
     <a href="?seccion=asignacion_permisos_editacion" class="btn">Editar Asignaciones</a>
+  </div>
+
+  <div class="btn-group">
+    <a href="?seccion=factorval&accion=crear" class="btn">Crear FactorVal</a>
+    <a href="?seccion=factorval&accion=editar" class="btn">Editar FactorVal</a>
   </div>
 
   <div class="btn-group">
@@ -275,7 +281,7 @@
         <label>RUT (sin puntos, con guión)</label><input type="text" name="rut" value="{{ obj.rut }}" class="solo-rut" required>
         <label>Email</label><input type="email" name="email" value="{{ obj.email }}" required>
         <label>Nueva Contraseña (opcional)</label>
-        <input type="password" name="password" placeholder="Dejar vacío para mantener la actual">
+        <input type="password" name="password" placeholder="Dejar vacío para la mantener actual">
         <label>Rol</label>
         <select name="rol" required>
           {% for r in roles %}<option value="{{ r.id_rol }}" {% if r.id_rol == obj.rol_id.id_rol %}selected{% endif %}>{{ r.nombre_rol }}</option>{% endfor %}
@@ -419,6 +425,99 @@
       </form>
     </div>
 
+  {% elif seccion == 'factorval' and accion == 'crear' %}
+    <div class="card">
+      <h2>Crear FactorVal</h2>
+      <form method="post" action="{% url 'crear_factorv' %}" id="formCrearFactor">
+        {% csrf_token %}
+        <label>Rango Mínimo</label>
+        <input type="text" name="rango_minimo" class="solo-float-validado" required>
+        <label>Rango Máximo</label>
+        <input type="text" name="rango_maximo" class="solo-float-validado" required>
+        <label>Descripción</label>
+        <textarea name="descripcion" rows="2" placeholder="Ej: Rango bajo" required></textarea>
+        <button type="submit" class="btn-success mt-3" id="btnCrearFactor">Crear FactorVal</button>
+        <div id="msgErrorFactor" style="color:#ff4d4d;margin-top:10px;font-size:14px;"></div>
+      </form>
+    </div>
+    <script>
+      (function(){
+        const form = document.getElementById('formCrearFactor');
+        const btn = document.getElementById('btnCrearFactor');
+        const msg = document.getElementById('msgErrorFactor');
+        function validar(){
+          const min = parseFloat(form.rango_minimo.value) || 0;
+          const max = parseFloat(form.rango_maximo.value) || 0;
+          const desc = form.descripcion.value.trim();
+          if (!desc || min >= max) {
+            btn.style.display = 'none';
+            msg.textContent = 'El botón de crear o guardar cambios no aparecerá porque se hicieron alguna de estas cosas: 1: Se dejó vacío la entrada Descripción 2: Se colocó un número mayor en rango mínimo y en rango máximo uno menor. Forma de solucionarlo: Poner texto en el campo Descripción y colocar el número menor en Rango Mínimo y el número mayor en Rango Máximo.';
+          } else {
+            btn.style.display = 'block';
+            msg.textContent = '';
+          }
+        }
+        form.addEventListener('input', validar);
+        validar();
+      })();
+    </script>
+
+  {% elif seccion == 'factorval' and accion == 'editar' and not obj_id %}
+    <div class="card">
+      <h2>Editar FactorVal</h2>
+      <div class="sql-table">
+        {% for fv in factor_vals %}
+          <div class="sql-row">
+            <div class="sql-cell">
+              <strong>ID:</strong> {{ fv.id_factor }}<br>
+              <strong>Rango:</strong> {{ fv.rango_minimo }} - {{ fv.rango_maximo }}
+            </div>
+            <div class="sql-action">
+              <a class="btn-edit" href="?seccion=factorval&accion=editar&obj_id={{ fv.id_factor }}">Editar</a>
+              <a class="btn-danger" href="{% url 'eliminar_factorv' fv.id_factor %}" onclick="return confirm('¿Estás seguro de eliminar este registro?')">Eliminar</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  {% elif seccion == 'factorval' and accion == 'editar' and obj %}
+    <div class="card">
+      <h2>Editar FactorVal</h2>
+      <form method="post" action="{% url 'actualizar_factorv' obj.id_factor %}" id="formEditarFactor">
+        {% csrf_token %}
+        <label>Rango Mínimo</label>
+        <input type="text" name="rango_minimo" value="{{ obj.rango_minimo }}" class="solo-float-validado" required>
+        <label>Rango Máximo</label>
+        <input type="text" name="rango_maximo" value="{{ obj.rango_maximo }}" class="solo-float-validado" required>
+        <label>Descripción</label>
+        <textarea name="descripcion" rows="2" required>{{ obj.descripcion }}</textarea>
+        <button type="submit" class="btn-success mt-3" id="btnEditarFactor">Guardar cambios</button>
+        <div id="msgErrorFactorEdit" style="color:#ff4d4d;margin-top:10px;font-size:14px;"></div>
+      </form>
+    </div>
+    <script>
+      (function(){
+        const form = document.getElementById('formEditarFactor');
+        const btn = document.getElementById('btnEditarFactor');
+        const msg = document.getElementById('msgErrorFactorEdit');
+        function validar(){
+          const min = parseFloat(form.rango_minimo.value) || 0;
+          const max = parseFloat(form.rango_maximo.value) || 0;
+          const desc = form.descripcion.value.trim();
+          if (!desc || min >= max) {
+            btn.style.display = 'none';
+            msg.textContent = 'El botón de crear o guardar cambios no aparecerá porque se hicieron alguna de estas cosas: 1: Se dejó vacío la entrada Descripción 2: Se colocó un número mayor en rango mínimo y en rango máximo uno menor. Forma de solucionarlo: Poner texto en el campo Descripción y colocar el número menor en Rango Mínimo y el número mayor en Rango Máximo.';
+          } else {
+            btn.style.display = 'block';
+            msg.textContent = '';
+          }
+        }
+        form.addEventListener('input', validar);
+        validar();
+      })();
+    </script>
+
   {% elif seccion == 'filtrar' %}
     <div class="card">
       <h2>Filtrar Calificaciones</h2>
@@ -543,6 +642,28 @@ document.querySelectorAll('.solo-float').forEach(function(inp){
 document.querySelectorAll('.solo-rut').forEach(function(inp){
   inp.addEventListener('input', function(){
     this.value = this.value.replace(/[^0-9kK-]/g, '');
+  });
+});
+
+// ---------- FACTORVAL: sin espacios, sin '-', solo números positivos ----------
+document.querySelectorAll('.solo-float-validado').forEach(function(inp){
+  inp.addEventListener('input', function(){
+    let v = this.value;
+    v = v.replace(/[^0-9.]/g, '');
+    v = v.replace(/-/g, '');
+    v = v.replace(/\s/g, '');
+    let parts = v.split('.');
+    if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+    if (v.startsWith('.')) v = '0' + v;
+    this.value = v;
+  });
+  inp.addEventListener('blur', function(){
+    let n = parseFloat(this.value);
+    if (isNaN(n) || n <= 0) {
+      this.setCustomValidity('Ingrese un número positivo mayor a 0');
+    } else {
+      this.setCustomValidity('');
+    }
   });
 });
 </script>
