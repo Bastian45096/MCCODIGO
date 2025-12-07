@@ -53,7 +53,6 @@ class Usuario(models.Model):
     user_auth = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='perfil')
     nombre = models.CharField(max_length=255)
     _email = models.CharField(max_length=255, unique=True, db_column='email_encrypted', default='fake@example.com')
-    rut_hash = models.CharField(max_length=128, blank=True, editable=False)
     rut = models.CharField(max_length=12, unique=True, db_index=True)
     rol_id = models.ForeignKey('Rol', on_delete=models.PROTECT)
     activo = models.CharField(max_length=1, default='S')
@@ -77,12 +76,18 @@ class Usuario(models.Model):
             raise ValueError("RUT inválido o formato incorrecto")
         cuerpo = clean[:-1]
         dv = clean[-1].upper()
-        self.rut_hash = make_password(clean)
         self.rut = f"{cuerpo}-{dv}"
+
 
     def verify_rut(self, raw_rut: str) -> bool:
         clean = re.sub(r'[^0-9kK]', '', raw_rut.upper())
-        return check_password(clean, self.rut_hash)
+        if not clean or len(clean) < 8 or len(clean) > 10:
+            return False
+        cuerpo = clean[:-1]
+        dv = clean[-1].upper()
+        formatted_rut = f"{cuerpo}-{dv}"
+        return formatted_rut == self.rut
+
 
     def tiene_permiso(self, permiso_nombre: str) -> bool:
         return RolPermiso.objects.filter(
@@ -148,7 +153,7 @@ class Calificacion(models.Model):
     
     calid = models.AutoField(primary_key=True)
     monto = models.DecimalField(max_digits=18, decimal_places=2)
-    factor = models.DecimalField(max_digits=10, decimal_places=4)
+    factor = models.DecimalField(max_digits=10, decimal_places=1)
     periodo = models.DateField()
     instrumento = models.ForeignKey(InstrumentoNI, on_delete=models.PROTECT)
     estado = models.CharField(max_length=10, choices=ESTADOS, default='ACTIVO')
@@ -240,3 +245,4 @@ class Auditoria(models.Model):
 
     def __str__(self):
         return f"{self.accion} en {self.tabla} ({self.fecha})"
+    

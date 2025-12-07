@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from Miapp.forms import LoginUsuarioForm
 from Miapp.models import (UserAuth, Usuario, Calificacion, InstrumentoNI,
-                          Factor_Val, CargaMasiva, Rol, Permiso, Auditoria, RolPermiso)
+                          Factor_Val, CargaMasiva, Rol, Permiso, Auditoria, RolPermiso, Busqueda)
 import logging
 import re
 import datetime
@@ -16,7 +16,7 @@ import json
 from django.contrib.auth import logout
 from datetime import date
 from urllib.parse import urlencode
-
+from MC.decorator import requiere_permiso_operador
 logger = logging.getLogger(__name__)
 
 def validar_calificacion(monto, factor, periodo):
@@ -103,7 +103,7 @@ def inicioAdmin(request):
     roles = Rol.objects.all()
     usuarios = Usuario.objects.select_related('user_auth', 'rol_id').filter(activo='S')
     calificaciones = Calificacion.objects.filter(estado='ACTIVO')
-    permisos = Permiso.objects.all()
+    permisos_objs = Permiso.objects.all()
     factor_vals = Factor_Val.objects.all()
 
     seccion = request.GET.get('seccion')
@@ -112,24 +112,67 @@ def inicioAdmin(request):
 
     obj = None
 
+    # ============================================================
+    # Diccionario de permisos para el ROL del usuario logueado
+    # ============================================================
+    permisos_nombres = RolPermiso.objects.filter(
+        rol=request.user.perfil.rol_id
+    ).values_list('permiso__nombre', flat=True)
+
+    permisos = {
+        # calificacion
+        'crear_calificacion':      'crear_calificacion'      in permisos_nombres,
+        'editar_calificacion':     'editar_calificacion'     in permisos_nombres,
+        'eliminar_calificacion':   'eliminar_calificacion'   in permisos_nombres,
+        # usuario
+        'crear_usuario':           'crear_usuario'           in permisos_nombres,
+        'editar_usuario':          'editar_usuario'          in permisos_nombres,
+        'eliminar_usuario':        'eliminar_usuario'        in permisos_nombres,
+        # instrumento
+        'crear_instrumento':       'crear_instrumento'       in permisos_nombres,
+        'editar_instrumento':      'editar_instrumento'      in permisos_nombres,
+        'eliminar_instrumento':    'eliminar_instrumento'    in permisos_nombres,
+        # rol
+        'crear_rol':               'crear_rol'               in permisos_nombres,
+        'editar_rol':              'editar_rol'              in permisos_nombres,
+        'eliminar_rol':            'eliminar_rol'            in permisos_nombres,
+        # permiso
+        'crear_permiso':           'crear_permiso'           in permisos_nombres,
+        'editar_permiso':          'editar_permiso'          in permisos_nombres,
+        'eliminar_permiso':        'eliminar_permiso'        in permisos_nombres,
+        # factorval
+        'crear_factorval':         'crear_factorval'         in permisos_nombres,
+        'editar_factorval':        'editar_factorval'        in permisos_nombres,
+        'eliminar_factorval':      'eliminar_factorval'      in permisos_nombres,
+        # asignaciones
+        'asignar_permisos':        'asignar_permisos'        in permisos_nombres,
+        'editar_asignaciones':     'editar_asignaciones'     in permisos_nombres,
+        'eliminar_asignaciones':   'eliminar_asignaciones'   in permisos_nombres,
+        # extras
+        'filtrar_calificaciones':  'filtrar_calificaciones'  in permisos_nombres,
+        'carga_masiva':            'carga_masiva'            in permisos_nombres,
+        'visualizar_usuarios':     'visualizar_usuarios'     in permisos_nombres,
+    }
+
+    # ===============  ASIGNACIONES  ===============
     if seccion == 'asignacion_permisos_editacion':
         asignaciones = RolPermiso.objects.select_related('rol', 'permiso').all()
-        roles = Rol.objects.all()
-        permisos = Permiso.objects.all()
         return render(request, 'inicioAdmin.html', {
             'instrumentos': instrumentos,
             'roles': roles,
             'usuarios': usuarios,
             'calificaciones': calificaciones,
-            'permisos': permisos,
+            'permisos': permisos_objs,
             'factor_vals': factor_vals,
             'seccion': seccion,
             'accion': accion,
             'obj': obj,
             'obj_id': obj_id,
             'asignaciones': asignaciones,
+            'permisos': permisos,               # ← pasamos el diccionario
         })
 
+    # ===============  OBJETOS A EDITAR  ===============
     if seccion == 'calificacion' and accion == 'editar' and obj_id:
         obj = Calificacion.objects.select_related('instrumento').get(calid=obj_id)
     elif seccion == 'usuario' and accion == 'editar' and obj_id:
@@ -142,19 +185,22 @@ def inicioAdmin(request):
         obj = Permiso.objects.get(id_permiso=obj_id)
     elif seccion == 'factorval' and accion == 'editar' and obj_id:
         obj = Factor_Val.objects.get(id_factor=obj_id)
+
+    # ===============  CREAR  ===============
     elif seccion == 'usuario' and accion == 'crear':
         return render(request, 'inicioAdmin.html', {
             'instrumentos': instrumentos,
             'roles': roles,
             'usuarios': usuarios,
             'calificaciones': calificaciones,
-            'permisos': permisos,
+            'permisos': permisos_objs,
             'factor_vals': factor_vals,
             'seccion': seccion,
             'accion': accion,
             'obj': obj,
             'obj_id': obj_id,
-            'crear_usuario': True
+            'crear_usuario': True,
+            'permisos': permisos,               # ← aquí también
         })
     elif seccion == 'instrumento' and accion == 'crear':
         return render(request, 'inicioAdmin.html', {
@@ -162,13 +208,14 @@ def inicioAdmin(request):
             'roles': roles,
             'usuarios': usuarios,
             'calificaciones': calificaciones,
-            'permisos': permisos,
+            'permisos': permisos_objs,
             'factor_vals': factor_vals,
             'seccion': seccion,
             'accion': accion,
             'obj': obj,
             'obj_id': obj_id,
-            'crear_instrumento': True
+            'crear_instrumento': True,
+            'permisos': permisos,               # ← aquí también
         })
     elif seccion == 'rol' and accion == 'crear':
         return render(request, 'inicioAdmin.html', {
@@ -176,13 +223,14 @@ def inicioAdmin(request):
             'roles': roles,
             'usuarios': usuarios,
             'calificaciones': calificaciones,
-            'permisos': permisos,
+            'permisos': permisos_objs,
             'factor_vals': factor_vals,
             'seccion': seccion,
             'accion': accion,
             'obj': obj,
             'obj_id': obj_id,
-            'crear_rol': True
+            'crear_rol': True,
+            'permisos': permisos,               # ← aquí también
         })
     elif seccion == 'rol' and accion == 'editar' and obj_id:
         return render(request, 'inicioAdmin.html', {
@@ -190,26 +238,29 @@ def inicioAdmin(request):
             'roles': roles,
             'usuarios': usuarios,
             'calificaciones': calificaciones,
-            'permisos': permisos,
+            'permisos': permisos_objs,
             'factor_vals': factor_vals,
             'seccion': seccion,
             'accion': accion,
             'obj': obj,
             'obj_id': obj_id,
-            'editar_rol': True
+            'editar_rol': True,
+            'permisos': permisos,               # ← aquí también
         })
 
+    # ===============  RETURN GENERAL  ===============
     return render(request, 'inicioAdmin.html', {
         'instrumentos': instrumentos,
         'roles': roles,
         'usuarios': usuarios,
         'calificaciones': calificaciones,
-        'permisos': permisos,
+        'permisos': permisos_objs,
         'factor_vals': factor_vals,
         'seccion': seccion,
         'accion': accion,
         'obj': obj,
         'obj_id': obj_id,
+        'permisos': permisos,                   # ← siempre va
     })
 
 @login_required
@@ -235,6 +286,22 @@ def inicioOperador(request):
     elif seccion == 'rol' and accion == 'editar' and obj_id:
         obj = Rol.objects.get(id_rol=obj_id)
 
+    # ➜➜➜ Diccionario de permisos para el template
+    permisos_nombres = RolPermiso.objects.filter(
+        rol=request.user.perfil.rol_id
+    ).values_list('permiso__nombre', flat=True)
+
+    permisos = {
+        'crear_calificacion':      'crear_calificacion'      in permisos_nombres,
+        'editar_calificacion':     'editar_calificacion'     in permisos_nombres,
+        'crear_usuario':           'crear_usuario'           in permisos_nombres,
+        'editar_usuario':          'editar_usuario'          in permisos_nombres,
+        'crear_instrumento':       'crear_instrumento'       in permisos_nombres,
+        'editar_instrumento':      'editar_instrumento'      in permisos_nombres,
+        'filtrar_calificaciones':  'filtrar_calificaciones'  in permisos_nombres,
+        'carga_masiva':            'carga_masiva'            in permisos_nombres,
+    }
+
     return render(request, 'inicioOperador.html', {
         'instrumentos': instrumentos,
         'roles': roles,
@@ -245,6 +312,7 @@ def inicioOperador(request):
         'accion': accion,
         'obj': obj,
         'obj_id': obj_id,
+        'permisos': permisos,
     })
 
 @login_required
@@ -254,17 +322,31 @@ def inicio(request):
     nombre_usuario = request.user.nombre
     calificaciones = []
     mensaje = None
+
+    # ========== Diccionario de permisos para cliente ==========
+    permisos_nombres = RolPermiso.objects.filter(
+        rol=request.user.perfil.rol_id
+    ).values_list('permiso__nombre', flat=True)
+
+    permisos = {
+        'filtrar_propias_calificaciones': 'filtrar_propias_calificaciones' in permisos_nombres,
+    }
+    # ==========================================================
+
     try:
         perfil = request.user.perfil
         rol_nombre = perfil.rol_id.nombre_rol
     except Usuario.DoesNotExist:
         mensaje = "Tu cuenta no tiene un perfil de cliente asociado."
+
     context = {
         'nombre_usuario_login': nombre_usuario,
         'rol_usuario': rol_nombre,
         'calificaciones': calificaciones,
         'mensaje': mensaje,
+        'permisos': permisos,  # ← pasamos el diccionario
     }
+
     if perfil and request.method == 'GET' and 'rut' in request.GET:
         rut_input = request.GET.get('rut', '').strip()
         clean_rut_ingresado = re.sub(r'[^0-9kK]', '', rut_input.upper())
@@ -293,6 +375,7 @@ def inicio(request):
                     ]
                 else:
                     context['mensaje'] = 'No se encontraron calificaciones para el RUT ingresado.'
+
     return render(request, 'inicio.html', context)
 
 @require_POST
@@ -334,6 +417,7 @@ def get_redirect_url(request):
     return 'inicio'
 
 @login_required
+@requiere_permiso_operador('crear_calificacion')
 def crear_calificacion(request):
     if request.method == 'POST':
         try:
@@ -372,6 +456,7 @@ def crear_calificacion(request):
     return _back_to_cal_list(request)
 
 @login_required
+@requiere_permiso_operador('carga_masiva')
 def carga_masiva(request):
     if request.method == 'POST' and request.FILES.get('archivo'):
         try:
@@ -390,6 +475,7 @@ def carga_masiva(request):
     return redirect(get_redirect_url(request))
 
 @login_required
+@requiere_permiso_operador('editar_calificacion')
 def guardar_calificacion(request):
     if request.method == 'POST':
         calid = request.POST.get('calid')
@@ -407,9 +493,20 @@ def guardar_calificacion(request):
                     messages.error(request, e)
                 return _back_to_cal_list(request)
 
-            instru = InstrumentoNI.objects.get(pk=request.POST.get('instrumento'))
-            fv = Factor_Val.objects.get(rango_minimo__lte=factor, rango_maximo__gte=factor)
+            # 🔒 VALIDACIÓN NUEVA: factor debe estar dentro del rango del FactorVal
+            try:
+                fv = Factor_Val.objects.get(
+                    rango_minimo__lte=factor,
+                    rango_maximo__gte=factor
+                )
+            except Factor_Val.DoesNotExist:
+                messages.error(
+                    request,
+                    f'El factor {factor} no está dentro del rango permitido por el FactorVal seleccionado.'
+                )
+                return _back_to_cal_list(request)
 
+            instru = InstrumentoNI.objects.get(pk=request.POST.get('instrumento'))
             usuario_perfil = Usuario.objects.get(pk=request.POST.get('usuario_id_usuario'))
             usuario_auth = usuario_perfil.user_auth
 
@@ -422,6 +519,7 @@ def guardar_calificacion(request):
                 usuario_id_usuario=usuario_auth,
                 factor_val_id_factor=fv
             )
+
             Auditoria.registrar(
                 accion='CREAR',
                 tabla='Calificacion',
@@ -429,11 +527,13 @@ def guardar_calificacion(request):
                 request=request
             )
             messages.success(request, 'Calificación guardada.')
+
         except Exception as e:
             messages.error(request, f'Error: {e}')
     return _back_to_cal_list(request)
 
 @login_required
+@requiere_permiso_operador('crear_usuario')
 def guardar_usuario(request):
     if request.method == 'POST':
         id_usuario = request.POST.get('id_usuario')
@@ -491,6 +591,7 @@ def guardar_usuario(request):
     return _back_to_user_list(request)
 
 @login_required
+@requiere_permiso_operador('crear_instrumento')
 def guardar_instrumento(request):
     if request.method == 'POST':
         id_instru = request.POST.get('id_instru')
@@ -637,22 +738,50 @@ def guardar_permiso(request):
     return redirect(get_redirect_url(request))
 
 @login_required
+@requiere_permiso_operador('filtrar_calificaciones')
 def filtrar_calificaciones(request):
-    from datetime import datetime
-    qs = Calificacion.objects.select_related('instrumento', 'factor_val_id_factor', 'usuario_id_usuario__perfil')
-    try:
-        perfil = request.user.perfil
-        if perfil.rol_id.nombre_rol.lower() == 'cliente':
-            qs = qs.filter(usuario_id_usuario=request.user)
-    except Exception:
-        pass
 
+    # ---------- Recoger filtros ----------
     rut         = request.GET.get('rut', '').strip()
     fecha       = request.GET.get('fecha', '').strip()
     monto_min   = request.GET.get('monto_min', '').strip()
     monto_max   = request.GET.get('monto_max', '').strip()
     instrumento = request.GET.get('instrumento', '').strip()
     factor_val  = request.GET.get('factor_val', '').strip()
+
+    # ---------- Guardar en tabla Busqueda ----------
+    criterios = {
+        'rut': rut,
+        'fecha': fecha,
+        'monto_min': monto_min,
+        'monto_max': monto_max,
+        'instrumento': instrumento,
+        'factor_val': factor_val,
+    }
+
+    Busqueda.objects.create(
+        criterios_busqueda=json.dumps(criterios, ensure_ascii=False),
+        usuario_id_usuario=request.user,
+        fecha_busqueda=datetime.now()  # ← guarda fecha y hora actual
+    )
+
+    # ---------- Guardar en Auditoria ----------
+    Auditoria.registrar(
+        accion='FILTRAR',
+        tabla='Calificacion',
+        cambios=f'Filtro aplicado por usuario {request.user.email}',
+        request=request
+    )
+
+    # ---------- Query base ----------
+    qs = Calificacion.objects.select_related('instrumento', 'factor_val_id_factor', 'usuario_id_usuario__perfil')
+
+    try:
+        perfil = request.user.perfil
+        if perfil.rol_id.nombre_rol.lower() == 'cliente':
+            qs = qs.filter(usuario_id_usuario=request.user)
+    except Exception:
+        pass
 
     errores = []
 
@@ -675,6 +804,7 @@ def filtrar_calificaciones(request):
             qs = qs.filter(monto__gte=float(monto_min))
         except ValueError:
             errores.append("Monto mínimo debe ser un número válido.")
+
     if monto_max:
         try:
             qs = qs.filter(monto__lte=float(monto_max))
@@ -693,14 +823,8 @@ def filtrar_calificaciones(request):
     if errores:
         for e in errores:
             messages.error(request, e)
-        return redirect('/inicioAdmin/?seccion=filtrar')
-
-    Auditoria.registrar(
-        accion='FILTRAR',
-        tabla='Calificacion',
-        cambios=f'Filtro aplicado por usuario {request.user.email}',
-        request=request
-    )
+        base = 'inicioAdmin' if request.user.perfil.rol_id.nombre_rol.lower() == 'administrador' else 'inicioOperador'
+        return redirect(f'/{base}/?seccion=filtrar')
 
     return render(request, 'filtrar_resultado.html', {'calificaciones': qs})
 
@@ -745,20 +869,33 @@ def actualizar_calificacion(request, calid):
             monto = float(request.POST.get('monto'))
             factor = float(request.POST.get('factor'))
             periodo = datetime.datetime.strptime(request.POST.get('periodo'), '%Y-%m').date()
+
             errores = validar_calificacion(monto, factor, periodo)
             if errores:
                 for e in errores:
                     messages.error(request, e)
                 return _back_to_cal_list(request)
+
+            # 🔒 VALIDACIÓN NUEVA: factor debe estar dentro del rango del FactorVal
+            try:
+                fv = Factor_Val.objects.get(
+                    rango_minimo__lte=factor,
+                    rango_maximo__gte=factor
+                )
+            except Factor_Val.DoesNotExist:
+                messages.error(
+                    request,
+                    f'El factor {factor} no está dentro del rango permitido por el FactorVal seleccionado.'
+                )
+                return _back_to_cal_list(request)
+
             cal.monto = monto
             cal.factor = factor
             cal.periodo = periodo
             cal.instrumento = InstrumentoNI.objects.get(pk=request.POST.get('instrumento'))
-            cal.factor_val_id_factor = Factor_Val.objects.get(
-                rango_minimo__lte=factor,
-                rango_maximo__gte=factor
-            )
+            cal.factor_val_id_factor = fv
             cal.save()
+
             Auditoria.registrar(
                 accion='EDITAR',
                 tabla='Calificacion',
@@ -766,12 +903,14 @@ def actualizar_calificacion(request, calid):
                 request=request
             )
             messages.success(request, 'Calificación actualizada correctamente.')
+
         except Exception as e:
             messages.error(request, f'Error al actualizar calificación: {e}')
         return _back_to_cal_list(request)
     return redirect(get_redirect_url(request))
 
 @login_required
+@requiere_permiso_operador('editar_usuario')
 def actualizar_usuario(request, id_usuario):
     usuario = get_object_or_404(Usuario, id_usuario=id_usuario)
     if request.method == 'POST':
@@ -816,6 +955,7 @@ def actualizar_usuario(request, id_usuario):
     return redirect(get_redirect_url(request))
 
 @login_required
+@requiere_permiso_operador('editar_instrumento')
 def actualizar_instrumento(request, id_instru):
     instrumento = get_object_or_404(InstrumentoNI, id_instru=id_instru)
     if request.method == 'POST':
@@ -969,16 +1109,22 @@ def crear_factorv(request):
         try:
             rango_minimo = float(request.POST.get('rango_minimo'))
             rango_maximo = float(request.POST.get('rango_maximo'))
+            descripcion = request.POST.get('descripcion', '')  # Agregar esta línea
+            
             if rango_maximo <= rango_minimo:
                 messages.error(request, 'El rango máximo debe ser mayor que el mínimo.')
                 return redirect('inicioAdmin')
 
-            factor = Factor_Val.objects.create(rango_minimo=rango_minimo, rango_maximo=rango_maximo)
+            factor = Factor_Val.objects.create(
+                rango_minimo=rango_minimo,
+                rango_maximo=rango_maximo,
+                descripcion=descripcion  # Agregar este parámetro
+            )
 
             Auditoria.registrar(
                 accion='CREAR',
                 tabla='Factor_Val',
-                cambios=f'Nuevo registro id={factor.id_factor}, rango_minimo={rango_minimo}, rango_maximo={rango_maximo}',
+                cambios=f'Nuevo registro id={factor.id_factor}, rango_minimo={rango_minimo}, rango_maximo={rango_maximo}, descripcion={descripcion}',
                 request=request
             )
 
@@ -987,6 +1133,7 @@ def crear_factorv(request):
             messages.error(request, f'Error: {e}')
         return redirect('inicioAdmin')
     return redirect('inicioAdmin')
+
 
 
 # ===== LISTAR / SELECCIONAR PARA EDITAR =====
@@ -1054,3 +1201,64 @@ def eliminar_factorv(request, id_factor):
     factor.delete()
     messages.success(request, 'FactorVal eliminado correctamente.')
     return redirect('editar_factorv')
+
+from django.db import transaction
+
+@login_required
+def asignar_todos_permisos(request):
+    """
+    Asigna TODOS los permisos existentes al rol recibido.
+    Si ya existía alguna asignación, la salta (no duplica).
+    """
+    if request.method != 'POST':
+        return redirect('asignar_permisos')
+
+    rol_id = request.POST.get('rol_id')
+    if not rol_id:
+        messages.error(request, 'Debes seleccionar un rol.')
+        return redirect('asignar_permisos')
+
+    rol = get_object_or_404(Rol, pk=rol_id)
+
+    # Crear solo las que no existan
+    with transaction.atomic():
+        creadas = 0
+        for p in Permiso.objects.all():
+            obj, nuevo = RolPermiso.objects.get_or_create(rol=rol, permiso=p)
+            if nuevo:
+                creadas += 1
+
+    Auditoria.registrar(
+        accion='ASIGNAR_MASIVA',
+        tabla='RolPermiso',
+        cambios=f'Se asignaron {creadas} permisos nuevos al rol "{rol.nombre_rol}"',
+        request=request
+    )
+    messages.success(request, f'Se asignaron {creadas} permisos al rol "{rol.nombre_rol}".')
+    return redirect('asignar_permisos')
+
+
+@login_required
+def quitar_todos_permisos(request):
+    """
+    Elimina TODAS las asignaciones de un rol (útil para volver a empezar).
+    """
+    if request.method != 'POST':
+        return redirect('asignar_permisos')
+
+    rol_id = request.POST.get('rol_id')
+    if not rol_id:
+        messages.error(request, 'Debes seleccionar un rol.')
+        return redirect('asignar_permisos')
+
+    rol = get_object_or_404(Rol, pk=rol_id)
+    borradas, _ = RolPermiso.objects.filter(rol=rol).delete()
+
+    Auditoria.registrar(
+        accion='QUITAR_MASIVA',
+        tabla='RolPermiso',
+        cambios=f'Se eliminaron {borradas} asignaciones del rol "{rol.nombre_rol}"',
+        request=request
+    )
+    messages.success(request, f'Se eliminaron {borradas} asignaciones del rol "{rol.nombre_rol}".')
+    return redirect('asignar_permisos')

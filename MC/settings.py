@@ -55,8 +55,12 @@ WSGI_APPLICATION = 'MC.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'mysql.connector.django',
+        'NAME': 'MDCBD',
+        'USER': 'root',
+        'PASSWORD': 'eclipsebreath',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 

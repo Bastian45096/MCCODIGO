@@ -8,156 +8,259 @@
     html,body{height:100%;}
     body{
       display:flex;
+      background:linear-gradient(135deg, #000000 0%, #1a0000 50%, #000000 100%);
       font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
-      overflow: hidden;
-      animation: colorChange 5s infinite;
+      color:#ffffff;
+      position:relative;
+      overflow:hidden;
     }
-    @keyframes colorChange {
-      0%{background-color: black;}
-      50%{background-color: red;}
-      100%{background-color: black;}
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, transparent 30%, rgba(255,0,0,0.1) 50%, transparent 70%);
+      animation: shine 3s infinite;
+      pointer-events: none;
+    }
+    @keyframes shine {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
     }
     .left-box{
-      width:320px;height:100vh;
-      background:rgba(0,0,0,.7);
-      color:#fff;
+      width:320px;
+      height:100vh;
+      background:rgba(0,0,0,0.8);
       padding:30px 20px;
       display:flex;
       flex-direction:column;
       gap:10px;
+      border-right:1px solid rgba(255,0,0,0.3);
+      box-shadow: 0 0 20px rgba(255,0,0,0.3);
     }
-    .left-box h3{font-size:18px;margin-bottom:10px;}
+    .left-box h3{
+      font-size:18px;
+      margin-bottom:10px;
+      text-shadow: 0 0 10px rgba(255,0,0,0.5);
+    }
     .btn-group{display:flex;gap:6px;}
     .btn{
-      flex:1;height:36px;border:none;border-radius:6px;
-      font-size:14px;font-weight:bold;cursor:pointer;
-      background:transparent;
-      color:#fff;
-      border:1px solid #fff;
-      box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000, 0 0 30px #ff0000;
-      transition: box-shadow 0.3s ease;
+      flex:1;
+      height:36px;
+      border:1px solid rgba(255,0,0,0.5);
+      border-radius:6px;
+      font-size:14px;
+      font-weight:bold;
+      cursor:pointer;
+      background:linear-gradient(45deg, rgba(255,0,0,0.2), rgba(255,0,0,0.1));
+      color:#ffffff;
+      transition:all 0.3s ease;
+      text-shadow: 0 0 5px rgba(255,255,255,0.5);
     }
     .btn:hover{
-      background:#ff0000;
-      color:#000;
-      box-shadow: 0 0 15px #ff0000, 0 0 25px #ff0000, 0 0 35px #ff0000;
+      background:linear-gradient(45deg, rgba(255,0,0,0.4), rgba(255,0,0,0.3));
+      box-shadow: 0 0 15px rgba(255,0,0,0.5);
+      transform: translateY(-2px);
+    }
+    .btn-success{
+      width:100%;
+      height:48px;
+      border:1px solid rgba(0,255,0,0.5);
+      border-radius:8px;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+      background:linear-gradient(45deg, rgba(0,255,0,0.2), rgba(0,255,0,0.1));
+      color:#ffffff;
+      transition:all 0.3s ease;
+      text-shadow: 0 0 5px rgba(0,255,0,0.5);
+    }
+    .btn-success:hover{
+      background:linear-gradient(45deg, rgba(0,255,0,0.3), rgba(0,255,0,0.2));
+      box-shadow: 0 0 15px rgba(0,255,0,0.5);
+      transform: translateY(-2px);
+    }
+    .btn-danger{
+      background:linear-gradient(45deg, rgba(220,53,69,0.2), rgba(220,53,69,0.1));
+      color:#ffffff;
+      padding:6px 12px;
+      border:1px solid rgba(220,53,69,0.5);
+      border-radius:6px;
+      text-decoration:none;
+      font-weight:bold;
+      font-size:14px;
+      transition:all 0.3s ease;
+      text-shadow: 0 0 5px rgba(255,255,255,0.5);
+    }
+    .btn-danger:hover{
+      background:linear-gradient(45deg, rgba(220,53,69,0.3), rgba(220,53,69,0.2));
+      box-shadow: 0 0 15px rgba(220,53,69,0.5);
+      transform: translateY(-2px);
     }
     .right-box{
-      flex:1;display:flex;align-items:flex-start;justify-content:center;
-      padding:40px 20px; overflow-y:auto;
+      flex:1;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:40px 20px;
+      overflow-y:auto;
     }
     .card{
-      width:90%;max-width:600px;
-      background:rgba(0,0,0,.6);
-      border-radius:12px;padding:30px;
-      color:#fff;display:flex;flex-direction:column;gap:20px;
+      width:90%;
+      max-width:600px;
+      background:rgba(0,0,0,0.8);
+      border:1px solid rgba(255,0,0,0.3);
+      border-radius:12px;
+      padding:30px;
+      display:flex;
+      flex-direction:column;
+      gap:20px;
+      box-shadow: 0 0 20px rgba(255,0,0,0.2);
     }
-    .card h2{font-size:22px;text-align:center;margin-bottom:10px;}
-    label{font-size:14px;margin-bottom:4px;}
+    .card h2{
+      font-size:22px;
+      text-align:center;
+      margin-bottom:10px;
+      text-shadow: 0 0 10px rgba(255,0,0,0.5);
+    }
+    label{
+      font-size:14px;
+      margin-bottom:4px;
+      color:rgba(255,255,255,0.9);
+    }
     input,select,textarea{
-      width:100%;border:none;border-radius:8px;
+      width:100%;
+      border:1px solid rgba(255,0,0,0.3);
+      border-radius:8px;
       padding:10px 15px;
       font-size:16px;
-      background:rgba(255,255,255,.1);color:#fff;outline:none;
+      background:rgba(0,0,0,0.5);
+      color:#ffffff;
+      outline:none;
+      transition:all 0.3s ease;
     }
-    input::placeholder{color:#ccc;}
-    .btn-success{width:100%;height:48px;border:none;border-radius:8px;
-                 font-size:16px;font-weight:bold;cursor:pointer;
-                 background:#198754;color:#fff;}
-    .btn-success:hover{background:#157347;}
-    .btn-danger{
-      background-color: #dc3545;
-      color: #fff;
-      padding: 6px 12px;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 14px;
-      box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000, 0 0 30px #ff0000;
+    input:focus,select:focus,textarea:focus{
+      border-color:rgba(255,0,0,0.5);
+      box-shadow: 0 0 10px rgba(255,0,0,0.3);
     }
-    .btn-danger:hover{background-color: #c82333;}
+    input::placeholder{color:rgba(255,255,255,0.5);}
     .sql-table{display:flex;flex-direction:column;gap:10px;}
-    .sql-row{display:flex;justify-content:space-between;align-items:center;
-             background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.2);
-             border-radius:8px;padding:12px 16px;transition:background .3s ease;}
-    .sql-row:hover{background:rgba(255,255,255,.1);}
+    .sql-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background:rgba(0,0,0,0.5);
+      border:1px solid rgba(255,0,0,0.3);
+      border-radius:8px;
+      padding:12px 16px;
+      transition:all 0.3s ease;
+    }
+    .sql-row:hover{
+      background:rgba(255,0,0,0.1);
+      box-shadow: 0 0 10px rgba(255,0,0,0.3);
+    }
     .sql-cell{flex:1;font-size:14px;line-height:1.5;}
     .sql-action{display:flex;gap:10px;}
     @media(max-width:768px){body{flex-direction:column;}.left-box{width:100%;height:auto;}}
 
-    /* =====  Scroll personalizado (estilo 2)  ===== */
     ::-webkit-scrollbar{
       width:12px;
     }
     ::-webkit-scrollbar-track{
-      background:#111;
+      background:rgba(0,0,0,0.3);
+      border-radius:6px;
     }
     ::-webkit-scrollbar-thumb{
-      background:#ff0000;
+      background:linear-gradient(45deg, rgba(255,0,0,0.3), rgba(255,0,0,0.2));
       border-radius:6px;
     }
     ::-webkit-scrollbar-thumb:hover{
-      background:#c82333;
+      background:linear-gradient(45deg, rgba(255,0,0,0.4), rgba(255,0,0,0.3));
     }
   </style>
 </head>
+
 <body>
 
 <div class="left-box">
   <h3>Admin - Opciones</h3>
 
+  {% if permisos.crear_calificacion or permisos.editar_calificacion %}
   <div class="btn-group">
-    <a href="?seccion=calificacion&accion=crear" class="btn">Crear Calificación</a>
-    <a href="?seccion=calificacion&accion=editar" class="btn">Editar Calificación</a>
+    {% if permisos.crear_calificacion %}<a href="?seccion=calificacion&accion=crear" class="btn">Crear Calificación</a>{% endif %}
+    {% if permisos.editar_calificacion %}<a href="?seccion=calificacion&accion=editar" class="btn">Editar Calificación</a>{% endif %}
   </div>
+  {% endif %}
 
+  {% if permisos.crear_usuario or permisos.editar_usuario %}
   <div class="btn-group">
-    <a href="?seccion=usuario&accion=crear" class="btn">Crear Usuario</a>
-    <a href="?seccion=usuario&accion=editar" class="btn">Editar Usuario</a>
+    {% if permisos.crear_usuario %}<a href="?seccion=usuario&accion=crear" class="btn">Crear Usuario</a>{% endif %}
+    {% if permisos.editar_usuario %}<a href="?seccion=usuario&accion=editar" class="btn">Editar Usuario</a>{% endif %}
   </div>
+  {% endif %}
 
+  {% if permisos.crear_instrumento or permisos.editar_instrumento %}
   <div class="btn-group">
-    <a href="?seccion=instrumento&accion=crear" class="btn">Crear Instrumento</a>
-    <a href="?seccion=instrumento&accion=editar" class="btn">Editar Instrumento</a>
+    {% if permisos.crear_instrumento %}<a href="?seccion=instrumento&accion=crear" class="btn">Crear Instrumento</a>{% endif %}
+    {% if permisos.editar_instrumento %}<a href="?seccion=instrumento&accion=editar" class="btn">Editar Instrumento</a>{% endif %}
   </div>
+  {% endif %}
 
+  {% if permisos.crear_rol or permisos.editar_rol %}
   <div class="btn-group">
-    <a href="?seccion=rol&accion=crear" class="btn">Crear Rol</a>
-    <a href="?seccion=rol&accion=editar" class="btn">Editar Rol</a>
+    {% if permisos.crear_rol %}<a href="?seccion=rol&accion=crear" class="btn">Crear Rol</a>{% endif %}
+    {% if permisos.editar_rol %}<a href="?seccion=rol&accion=editar" class="btn">Editar Rol</a>{% endif %}
   </div>
+  {% endif %}
 
+  {% if permisos.crear_permiso or permisos.editar_permiso %}
   <div class="btn-group">
-    <a href="?seccion=permiso&accion=crear" class="btn">Crear Permiso</a>
-    <a href="?seccion=permiso&accion=editar" class="btn">Editar Permiso</a>
+    {% if permisos.crear_permiso %}<a href="?seccion=permiso&accion=crear" class="btn">Crear Permiso</a>{% endif %}
+    {% if permisos.editar_permiso %}<a href="?seccion=permiso&accion=editar" class="btn">Editar Permiso</a>{% endif %}
   </div>
+  {% endif %}
 
+  {% if permisos.asignar_permisos %}
   <div class="btn-group">
     <a href="?seccion=asignacion_permisos" class="btn">Asignación de Permisos</a>
   </div>
+  {% endif %}
 
+  {% if permisos.editar_asignaciones %}
   <div class="btn-group">
     <a href="?seccion=asignacion_permisos_editacion" class="btn">Editar Asignaciones</a>
   </div>
+  {% endif %}
 
+  {% if permisos.crear_factorval or permisos.editar_factorval %}
   <div class="btn-group">
-    <a href="?seccion=factorval&accion=crear" class="btn">Crear FactorVal</a>
-    <a href="?seccion=factorval&accion=editar" class="btn">Editar FactorVal</a>
+    {% if permisos.crear_factorval %}<a href="?seccion=factorval&accion=crear" class="btn">Crear FactorVal</a>{% endif %}
+    {% if permisos.editar_factorval %}<a href="?seccion=factorval&accion=editar" class="btn">Editar FactorVal</a>{% endif %}
   </div>
+  {% endif %}
 
+  {% if permisos.filtrar_calificaciones %}
   <div class="btn-group">
     <a href="?seccion=filtrar" class="btn">Filtrar Calificaciones</a>
   </div>
+  {% endif %}
 
+  {% if permisos.visualizar_usuarios %}
   <div class="btn-group">
     <a href="{% url 'visualizar_usuarios' %}" class="btn">Visualización de Usuarios</a>
   </div>
+  {% endif %}
 
+  {% if permisos.carga_masiva %}
   <h3 class="mt-4">Carga masiva</h3>
   <form method="post" action="{% url 'carga_masiva' %}" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="file" name="archivo" accept=".json,.csv" required>
     <button type="submit" class="btn">Subir archivo</button>
   </form>
+  {% endif %}
 
   <div class="btn-group">
     <a href="{% url 'logout' %}" class="btn btn-danger">Cerrar sesión</a>
@@ -211,7 +314,9 @@
             </div>
             <div class="sql-action">
               <a class="btn-edit" href="?seccion=calificacion&accion=editar&obj_id={{ c.calid }}">Editar</a>
+              {% if permisos.eliminar_calificacion %}
               <a class="btn-danger" href="{% url 'eliminar_calificacion' c.calid %}" onclick="return confirm('¿Estás seguro de eliminar esta calificación?')">Eliminar</a>
+              {% endif %}
             </div>
           </div>
         {% endfor %}
@@ -265,7 +370,9 @@
             </div>
             <div class="sql-action">
               <a class="btn-edit" href="?seccion=usuario&accion=editar&obj_id={{ u.id_usuario }}">Editar</a>
+              {% if permisos.eliminar_usuario %}
               <a class="btn-danger" href="{% url 'eliminar_usuario' u.id_usuario %}" onclick="return confirm('¿Estás seguro de eliminar este usuario?')">Eliminar</a>
+              {% endif %}
             </div>
           </div>
         {% endfor %}
@@ -318,7 +425,9 @@
             </div>
             <div class="sql-action">
               <a class="btn-edit" href="?seccion=instrumento&accion=editar&obj_id={{ i.id_instru }}">Editar</a>
+              {% if permisos.eliminar_instrumento %}
               <a class="btn-danger" href="{% url 'eliminar_instrumento' i.id_instru %}" onclick="return confirm('¿Estás seguro de eliminar este instrumento?')">Eliminar</a>
+              {% endif %}
             </div>
           </div>
         {% endfor %}
@@ -364,7 +473,9 @@
             </div>
             <div class="sql-action">
               <a class="btn-edit" href="?seccion=rol&accion=editar&obj_id={{ r.id_rol }}">Editar</a>
+              {% if permisos.eliminar_rol %}
               <a class="btn-danger" href="{% url 'eliminar_rol' r.id_rol %}" onclick="return confirm('¿Estás seguro de eliminar este rol?')">Eliminar</a>
+              {% endif %}
             </div>
           </div>
         {% endfor %}
@@ -406,7 +517,9 @@
             </div>
             <div class="sql-action">
               <a class="btn-edit" href="?seccion=permiso&accion=editar&obj_id={{ p.id_permiso }}">Editar</a>
+              {% if permisos.eliminar_permiso %}
               <a class="btn-danger" href="{% url 'eliminar_permiso' p.id_permiso %}" onclick="return confirm('¿Estás seguro de eliminar este permiso?')">Eliminar</a>
+              {% endif %}
             </div>
           </div>
         {% endfor %}
@@ -474,7 +587,9 @@
             </div>
             <div class="sql-action">
               <a class="btn-edit" href="?seccion=factorval&accion=editar&obj_id={{ fv.id_factor }}">Editar</a>
+              {% if permisos.eliminar_factorval %}
               <a class="btn-danger" href="{% url 'eliminar_factorv' fv.id_factor %}" onclick="return confirm('¿Estás seguro de eliminar este registro?')">Eliminar</a>
+              {% endif %}
             </div>
           </div>
         {% endfor %}
@@ -556,7 +671,32 @@
         <input type="hidden" name="accion" value="crear">
         <button type="submit" class="btn-success mt-3">Asignar Permiso</button>
       </form>
-    </div>
+
+      <div style="margin-top:1.5rem;display:flex;gap:.5rem;">
+        <form method="post" action="{% url 'asignar_todos_permisos' %}" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="rol_id" id="rol-id-masivo" value="">
+          <button type="submit" class="btn btn-success"
+                  onclick="return document.getElementById('rol-id-masivo').value !== '' || (alert('Primero selecciona un rol en la lista superior'), false);">
+            Asignar todos los permisos al rol
+          </button>
+        </form>
+
+        <a href="?seccion=asignacion_permisos" class="btn btn-secondary">
+          Ingresar individualmente permisos
+        </a>
+      </div>
+
+      <script>
+        (function(){
+          const selectRol = document.querySelector('select[name="rol"]');
+          const hiddenRol = document.getElementById('rol-id-masivo');
+          selectRol.addEventListener('change', function(){
+            hiddenRol.value = this.value;
+          });
+          hiddenRol.value = selectRol.value;
+        })();
+      </script>
 
   {% elif seccion == 'asignacion_permisos_editacion' %}
     <div class="card">
@@ -589,7 +729,9 @@
 
               <div class="sql-action" style="display:flex;gap:6px;">
                 <button type="submit" class="btn" title="Guardar cambios">💾</button>
+                {% if permisos.eliminar_asignaciones %}
                 <button type="submit" formaction="{% url 'gestionar_asignacion_permisos_editacion' %}?accion=eliminar" name="accion" value="eliminar" class="btn-danger" title="Eliminar asignación" onclick="return confirm('¿Estás seguro de eliminar esta asignación?')">🗑️</button>
+                {% endif %}
               </div>
             </form>
           </div>
@@ -602,7 +744,6 @@
 </div>
 
 <script>
-// ---------- TEXTOS: letras y espacios, sin números, no vacío ----------
 document.querySelectorAll('.solo-texto').forEach(function(inp){
   inp.addEventListener('input', function(){
     this.value = this.value.replace(/[0-9]/g, '');
@@ -617,7 +758,6 @@ document.querySelectorAll('.solo-texto').forEach(function(inp){
   });
 });
 
-// ---------- FLOATS: solo números, punto, sin letras, sin negativos ----------
 document.querySelectorAll('.solo-float').forEach(function(inp){
   inp.addEventListener('input', function(){
     let v = this.value;
@@ -638,14 +778,12 @@ document.querySelectorAll('.solo-float').forEach(function(inp){
   });
 });
 
-// ---------- RUT: solo números y k/K ----------
 document.querySelectorAll('.solo-rut').forEach(function(inp){
   inp.addEventListener('input', function(){
     this.value = this.value.replace(/[^0-9kK-]/g, '');
   });
 });
 
-// ---------- FACTORVAL: sin espacios, sin '-', solo números positivos ----------
 document.querySelectorAll('.solo-float-validado').forEach(function(inp){
   inp.addEventListener('input', function(){
     let v = this.value;
@@ -666,6 +804,21 @@ document.querySelectorAll('.solo-float-validado').forEach(function(inp){
     }
   });
 });
+</script>
+
+<script>
+  (function(){
+    const hoyMes = new Date().toISOString().slice(0,7);
+    const hoyDia = new Date().toISOString().slice(0,10);
+    document.querySelectorAll('input[type="month"]').forEach(function(el){
+      el.max = hoyMes;
+      if (el.value > hoyMes) el.value = hoyMes;
+    });
+    document.querySelectorAll('input[type="date"]').forEach(function(el){
+      el.max = hoyDia;
+      if (el.value > hoyDia) el.value = hoyDia;
+    });
+  })();
 </script>
 
 </body>

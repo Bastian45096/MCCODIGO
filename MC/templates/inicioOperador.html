@@ -6,78 +6,291 @@
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
     html,body{height:100%;}
-    body{display:flex;background:linear-gradient(to bottom,#ff0000 50%,#000000 50%);font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;color:#ffffff;}
-    .left-box{width:320px;height:100vh;background:rgba(0,0,0,0.7);padding:30px 20px;display:flex;flex-direction:column;gap:10px;}
-    .left-box h3{font-size:18px;margin-bottom:10px;}
+    body{
+      display:flex;
+      background:linear-gradient(135deg, #000000 0%, #1a0000 50%, #000000 100%);
+      font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+      color:#ffffff;
+      position:relative;
+      overflow:hidden;
+    }
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, transparent 30%, rgba(255,0,0,0.1) 50%, transparent 70%);
+      animation: shine 3s infinite;
+      pointer-events: none;
+    }
+    @keyframes shine {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    .left-box{
+      width:320px;
+      height:100vh;
+      background:rgba(0,0,0,0.8);
+      padding:30px 20px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      border-right:1px solid rgba(255,0,0,0.3);
+      box-shadow: 0 0 20px rgba(255,0,0,0.3);
+    }
+    .left-box h3{
+      font-size:18px;
+      margin-bottom:10px;
+      text-shadow: 0 0 10px rgba(255,0,0,0.5);
+    }
+    .saludo-interno{
+      width:100%;
+      text-align:center;
+      font-size:14px;
+      color:#ffffff;
+      background:linear-gradient(45deg, rgba(255,0,0,0.2), rgba(255,0,0,0.1));
+      border:1px solid rgba(255,0,0,0.3);
+      border-radius:6px;
+      padding:6px 0;
+      margin-bottom:10px;
+      box-shadow: 0 0 10px rgba(255,0,0,0.2);
+    }
     .btn-group{display:flex;gap:6px;}
-    .btn{flex:1;height:36px;border:none;border-radius:6px;font-size:14px;font-weight:bold;cursor:pointer;background-color:#ff0000;color:#ffffff;transition:background-color 0.3s ease;}
-    .btn:hover{background-color:#cc0000;}
-    .btn-outline-light{background:transparent;color:#ffffff;border:1px solid #ffffff;}
-    .btn-outline-light:hover{background:#ffffff;color:#000000;}
-    .right-box{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;}
-    .card{width:90%;max-width:420px;background:rgba(0,0,0,0.6);border-radius:12px;padding:30px;display:flex;flex-direction:column;gap:15px;}
-    .card h2{font-size:22px;text-align:center;margin-bottom:10px;}
-    label{font-size:14px;margin-bottom:4px;}
-    input,select,textarea{width:100%;height:48px;border:none;border-radius:8px;padding:0 15px;font-size:16px;background:rgba(255,255,255,0.1);color:#ffffff;outline:none;}
-    input::placeholder{color:#cccccc;}
-    .btn-success{width:100%;height:48px;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;background:#198754;color:#ffffff;transition:background-color 0.3s ease;}
-    .btn-success:hover{background:#157347;}
+    .btn{
+      flex:1;
+      height:36px;
+      border:1px solid rgba(255,0,0,0.5);
+      border-radius:6px;
+      font-size:14px;
+      font-weight:bold;
+      cursor:pointer;
+      background:linear-gradient(45deg, rgba(255,0,0,0.2), rgba(255,0,0,0.1));
+      color:#ffffff;
+      transition:all 0.3s ease;
+      text-shadow: 0 0 5px rgba(255,255,255,0.5);
+    }
+    .btn:hover{
+      background:linear-gradient(45deg, rgba(255,0,0,0.4), rgba(255,0,0,0.3));
+      box-shadow: 0 0 15px rgba(255,0,0,0.5);
+      transform: translateY(-2px);
+    }
+    .btn-outline-light{
+      background:transparent;
+      color:#ffffff;
+      border:1px solid rgba(255,255,255,0.3);
+      box-shadow: 0 0 10px rgba(255,255,255,0.1);
+    }
+    .btn-outline-light:hover{
+      background:rgba(255,255,255,0.1);
+      box-shadow: 0 0 20px rgba(255,255,255,0.3);
+    }
+    .btn:disabled{
+      background-color:#333;
+      color:#666;
+      border-color:#444;
+      cursor:not-allowed;
+      box-shadow: none;
+    }
+    .right-box{
+      flex:1;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:40px 20px;
+      overflow-y:auto;
+    }
+    .card{
+      width:90%;
+      max-width:420px;
+      background:rgba(0,0,0,0.8);
+      border:1px solid rgba(255,0,0,0.3);
+      border-radius:12px;
+      padding:30px;
+      display:flex;
+      flex-direction:column;
+      gap:15px;
+      box-shadow: 0 0 20px rgba(255,0,0,0.2);
+    }
+    .card h2{
+      font-size:22px;
+      text-align:center;
+      margin-bottom:10px;
+      text-shadow: 0 0 10px rgba(255,0,0,0.5);
+    }
+    label{
+      font-size:14px;
+      margin-bottom:4px;
+      color:rgba(255,255,255,0.9);
+    }
+    input,select,textarea{
+      width:100%;
+      height:48px;
+      border:1px solid rgba(255,0,0,0.3);
+      border-radius:8px;
+      padding:0 15px;
+      font-size:16px;
+      background:rgba(0,0,0,0.5);
+      color:#ffffff;
+      outline:none;
+      transition:all 0.3s ease;
+    }
+    input:focus,select:focus,textarea:focus{
+      border-color:rgba(255,0,0,0.5);
+      box-shadow: 0 0 10px rgba(255,0,0,0.3);
+    }
+    input::placeholder{color:rgba(255,255,255,0.5);}
+    .btn-success{
+      width:100%;
+      height:48px;
+      border:1px solid rgba(0,255,0,0.5);
+      border-radius:8px;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+      background:linear-gradient(45deg, rgba(0,255,0,0.2), rgba(0,255,0,0.1));
+      color:#ffffff;
+      transition:all 0.3s ease;
+      text-shadow: 0 0 5px rgba(0,255,0,0.5);
+    }
+    .btn-success:hover{
+      background:linear-gradient(45deg, rgba(0,255,0,0.3), rgba(0,255,0,0.2));
+      box-shadow: 0 0 15px rgba(0,255,0,0.5);
+      transform: translateY(-2px);
+    }
     .sql-table{display:flex;flex-direction:column;gap:10px;}
-    .sql-row{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:12px 16px;transition:background 0.3s ease;}
-    .sql-row:hover{background:rgba(255,255,255,0.1);}
+    .sql-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background:rgba(0,0,0,0.5);
+      border:1px solid rgba(255,0,0,0.3);
+      border-radius:8px;
+      padding:12px 16px;
+      transition:all 0.3s ease;
+    }
+    .sql-row:hover{
+      background:rgba(255,0,0,0.1);
+      box-shadow: 0 0 10px rgba(255,0,0,0.3);
+    }
     .sql-cell{flex:1;font-size:14px;line-height:1.5;}
     .sql-action{margin-left:20px;}
-    .btn-edit{background-color:#0dcaf0;color:#000000;padding:6px 12px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;transition:background-color 0.3s ease;}
-    .btn-edit:hover{background-color:#0aa5c0;}
-    @media(max-width:768px){body{flex-direction:column;}.left-box{width:100%;height:auto;}}
+    .btn-edit{
+      background:linear-gradient(45deg, rgba(0,255,255,0.2), rgba(0,255,255,0.1));
+      color:#ffffff;
+      padding:6px 12px;
+      border:1px solid rgba(0,255,255,0.5);
+      border-radius:6px;
+      text-decoration:none;
+      font-weight:bold;
+      font-size:14px;
+      transition:all 0.3s ease;
+      text-shadow: 0 0 5px rgba(0,255,255,0.5);
+    }
+    .btn-edit:hover{
+      background:linear-gradient(45deg, rgba(0,255,255,0.3), rgba(0,255,255,0.2));
+      box-shadow: 0 0 15px rgba(0,255,255,0.5);
+      transform: translateY(-2px);
+    }
+    @media(max-width:768px){
+      body{flex-direction:column;}
+      .left-box{width:100%;height:auto;}
+    }
 
-    /* Scrollbar personalizado */
-    ::-webkit-scrollbar {
-      width: 10px;
+    ::-webkit-scrollbar{
+      width:10px;
     }
-    ::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 5px;
+    ::-webkit-scrollbar-track{
+      background:rgba(0,0,0,0.3);
+      border-radius:5px;
     }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 5px;
+    ::-webkit-scrollbar-thumb{
+      background:linear-gradient(45deg, rgba(255,0,0,0.3), rgba(255,0,0,0.2));
+      border-radius:5px;
     }
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.5);
+    ::-webkit-scrollbar-thumb:hover{
+      background:linear-gradient(45deg, rgba(255,0,0,0.4), rgba(255,0,0,0.3));
     }
   </style>
 </head>
+
 <body>
+
+{% if messages %}
+  {% for message in messages %}
+    {% if message.level_tag != 'success' %}
+      <div class="alert alert-{{ message.level_tag }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
 
 <div class="left-box">
   <h3>Opciones</h3>
 
+  <!-- saludo dentro del rectángulo -->
+  <div class="saludo-interno">Bienvenido, Operador</div>
+
   <div class="btn-group">
-    <a href="?seccion=calificacion&accion=crear" class="btn btn-outline-light">Crear Calificación</a>
-    <a href="?seccion=calificacion&accion=editar" class="btn btn-outline-light">Editar Calificación</a>
+    {% if permisos.crear_calificacion %}
+      <a href="?seccion=calificacion&accion=crear" class="btn btn-outline-light">Crear Calificación</a>
+    {% else %}
+      <button class="btn btn-outline-secondary" disabled title="Sin permiso">Crear Calificación</button>
+    {% endif %}
+    {% if permisos.editar_calificacion %}
+      <a href="?seccion=calificacion&accion=editar" class="btn btn-outline-light">Editar Calificación</a>
+    {% else %}
+      <button class="btn btn-outline-secondary" disabled title="Sin permiso">Editar Calificación</button>
+    {% endif %}
   </div>
 
   <div class="btn-group">
-    <a href="?seccion=usuario&accion=crear" class="btn btn-outline-light">Crear Usuario</a>
-    <a href="?seccion=usuario&accion=editar" class="btn btn-outline-light">Editar Usuario</a>
+    {% if permisos.crear_usuario %}
+      <a href="?seccion=usuario&accion=crear" class="btn btn-outline-light">Crear Usuario</a>
+    {% else %}
+      <button class="btn btn-outline-secondary" disabled title="Sin permiso">Crear Usuario</button>
+    {% endif %}
+    {% if permisos.editar_usuario %}
+      <a href="?seccion=usuario&accion=editar" class="btn btn-outline-light">Editar Usuario</a>
+    {% else %}
+      <button class="btn btn-outline-secondary" disabled title="Sin permiso">Editar Usuario</button>
+    {% endif %}
   </div>
 
   <div class="btn-group">
-    <a href="?seccion=instrumento&accion=crear" class="btn btn-outline-light">Crear Instrumento</a>
-    <a href="?seccion=instrumento&accion=editar" class="btn btn-outline-light">Editar Instrumento</a>
+    {% if permisos.crear_instrumento %}
+      <a href="?seccion=instrumento&accion=crear" class="btn btn-outline-light">Crear Instrumento</a>
+    {% else %}
+      <button class="btn btn-outline-secondary" disabled title="Sin permiso">Crear Instrumento</button>
+    {% endif %}
+    {% if permisos.editar_instrumento %}
+      <a href="?seccion=instrumento&accion=editar" class="btn btn-outline-light">Editar Instrumento</a>
+    {% else %}
+      <button class="btn btn-outline-secondary" disabled title="Sin permiso">Editar Instrumento</button>
+    {% endif %}
   </div>
 
   <div class="btn-group">
-    <a href="?seccion=filtrar" class="btn btn-outline-light">Filtrar Calificaciones</a>
+    {% if permisos.filtrar_calificaciones %}
+      <a href="?seccion=filtrar" class="btn btn-outline-light">Filtrar Calificaciones</a>
+    {% else %}
+      <button class="btn btn-outline-secondary" disabled title="Sin permiso">Filtrar Calificaciones</button>
+    {% endif %}
   </div>
 
   <h3 class="mt-4">Carga masiva</h3>
-  <form method="post" action="{% url 'carga_masiva' %}" enctype="multipart/form-data">
-    {% csrf_token %}
-    <input type="file" name="archivo" accept=".json,.csv" required>
-    <button type="submit" class="btn btn-outline-light mt-2">Subir archivo</button>
-  </form>
+  {% if permisos.carga_masiva %}
+    <form method="post" action="{% url 'carga_masiva' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="file" name="archivo" accept=".json,.csv" required>
+      <button type="submit" class="btn btn-outline-light mt-2">Subir archivo</button>
+    </form>
+  {% else %}
+    <button class="btn btn-outline-secondary" disabled title="Sin permiso">Subir archivo</button>
+  {% endif %}
 
   <div class="btn-group">
     <a href="{% url 'logout' %}" class="btn btn-outline-danger">Cerrar sesión</a>
@@ -116,7 +329,6 @@
         <button type="submit" class="btn-success mt-3">Crear Calificación</button>
       </form>
     </div>
-
   {% elif seccion == 'calificacion' and accion == 'editar' and not obj_id %}
     <div class="card">
       <h2>Seleccione una Calificación para Editar</h2>
@@ -135,7 +347,6 @@
         {% endfor %}
       </div>
     </div>
-
   {% elif seccion == 'calificacion' and accion == 'editar' and obj_id %}
     <div class="card">
       <h2>Editar Calificación</h2>
@@ -152,7 +363,6 @@
         <button type="submit" class="btn-success mt-3">Guardar cambios</button>
       </form>
     </div>
-
   {% elif seccion == 'usuario' and accion == 'crear' %}
     <div class="card">
       <h2>Crear Usuario</h2>
@@ -170,7 +380,6 @@
         <button type="submit" class="btn-success mt-3">Crear Usuario</button>
       </form>
     </div>
-
   {% elif seccion == 'usuario' and accion == 'editar' and not obj_id %}
     <div class="card">
       <h2>Seleccione un Usuario para Editar</h2>
@@ -189,7 +398,6 @@
         {% endfor %}
       </div>
     </div>
-
   {% elif seccion == 'usuario' and accion == 'editar' and obj_id %}
     <div class="card">
       <h2>Editar Usuario</h2>
@@ -208,7 +416,6 @@
         <button type="submit" class="btn-success mt-3">Guardar cambios</button>
       </form>
     </div>
-
   {% elif seccion == 'instrumento' and accion == 'crear' %}
     <div class="card">
       <h2>Crear Instrumento</h2>
@@ -224,7 +431,6 @@
         <button type="submit" class="btn-success mt-3">Crear Instrumento</button>
       </form>
     </div>
-
   {% elif seccion == 'instrumento' and accion == 'editar' and not obj_id %}
     <div class="card">
       <h2>Seleccione un Instrumento para Editar</h2>
@@ -242,7 +448,6 @@
         {% endfor %}
       </div>
     </div>
-
   {% elif seccion == 'instrumento' and accion == 'editar' and obj_id %}
     <div class="card">
       <h2>Editar Instrumento</h2>
@@ -259,7 +464,6 @@
         <button type="submit" class="btn-success mt-3">Guardar cambios</button>
       </form>
     </div>
-
   {% elif seccion == 'filtrar' %}
     <div class="card">
       <h2>Filtrar Calificaciones</h2>

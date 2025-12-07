@@ -34,10 +34,12 @@ urlpatterns = [
     path('', views.principal, name='principal'),
     path('gestionar_asignacion_permisos/', views.asignar_permisos, name='gestionar_asignacion_permisos'),
     path('gestionar_asignacion_permisos_editacion/', views.asignar_permisos_editacion, name='gestionar_asignacion_permisos_editacion'),
-     path('crear-factorv/', views.crear_factorv, name='crear_factorv'),
+    path('crear-factorv/', views.crear_factorv, name='crear_factorv'),
     path('editar-factorv/', views.editar_factorv, name='editar_factorv'),
     path('actualizar-factorv/<int:id_factor>/', views.actualizar_factorv, name='actualizar_factorv'),
     path('eliminar-factorv/<int:id_factor>/', views.eliminar_factorv, name='eliminar_factorv'),
+    path('asignar/todos/', views.asignar_todos_permisos, name='asignar_todos_permisos'),
+    path('asignar/quitar-todos/', views.quitar_todos_permisos, name='quitar_todos_permisos'),
 
     path('admin/', admin.site.urls),
 ]
