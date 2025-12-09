@@ -1,3 +1,4 @@
+```html
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
@@ -122,8 +123,14 @@
                         
                         <div class="form-group">
                             <label for="rutInput">RUT:</label>
-                            <input type="text" id="rutInput" name="rut" placeholder="Ej: 12.345.678-5" 
-                                   value="{{ request.GET.rut|default_if_none:'' }}" required>
+                            <input  type="text"
+                                    id="rutInput"
+                                    name="rut"
+                                    placeholder="Ej: 12.345.678-5"
+                                    value="{{ request.GET.rut|default_if_none:'' }}"
+                                    required
+                                    onkeydown="return bloquearTab(event);"
+                                    oninput="this.value = formateaRut(this.value);">
                         </div>
                         
                         <div class="input-group">
@@ -184,5 +191,25 @@
         </div>
 
     </div>
+
+    <script>
+    // ---- impide Tab ----
+    function bloquearTab(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            return false;
+        }
+        return true;
+    }
+
+    // ---- formato rápido mientras escribe (opcional) ----
+    function formateaRut(value) {
+        return value
+            .replace(/[^0-9kK]/g, '')          // solo números y K
+            .slice(0, 9)                        // máx 9 caracteres
+            .replace(/^(\d{1,8})(\w{0,1})$/, '$1-$2');  // agrega guión
+    }
+    </script>
 </body>
 </html>
+```
