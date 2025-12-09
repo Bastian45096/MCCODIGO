@@ -90,9 +90,15 @@
     <p class="no-result">No se encontraron calificaciones para el RUT ingresado.</p>
   {% endif %}
 
-  <div style="text-align: center;">
-    <a class="back-link" href="{% url 'inicioOperador' %}?seccion=filtrar">← Volver al filtro</a>
+  <!-- ========== BOTÓN VOLVER AL MENÚ SEGÚN ROL (SIN TOCAR NADA ANTERIOR) ========== -->
+  <div style="text-align: center; margin-top: 30px;">
+    {% if request.user.perfil.rol_id.nombre_rol == 'Administrador' %}
+      <a class="back-link" href="{% url 'inicioAdmin' %}?seccion=filtrar">← Volver al Menú Administrador</a>
+    {% elif request.user.perfil.rol_id.nombre_rol == 'Operador' %}
+      <a class="back-link" href="{% url 'inicioOperador' %}?seccion=filtrar">← Volver al Menú Operador</a>
+    {% endif %}
   </div>
+  <!-- ====================================================================== -->
 
 </body>
 </html>

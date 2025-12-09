@@ -9,7 +9,7 @@
     body{
       display:flex;
       background:linear-gradient(135deg, #000000 0%, #1a0000 50%, #000000 100%);
-      font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color:#ffffff;
       position:relative;
       overflow:hidden;
@@ -184,642 +184,690 @@
 
 <body>
 
-<div class="left-box">
-  <h3>Admin - Opciones</h3>
-
-  {% if permisos.crear_calificacion or permisos.editar_calificacion %}
-  <div class="btn-group">
-    {% if permisos.crear_calificacion %}<a href="?seccion=calificacion&accion=crear" class="btn">Crear Calificación</a>{% endif %}
-    {% if permisos.editar_calificacion %}<a href="?seccion=calificacion&accion=editar" class="btn">Editar Calificación</a>{% endif %}
+  <div class="left-box">
+    <h3>Admin - Opciones</h3>
+    
+    {% if permisos.crear_calificacion or permisos.editar_calificacion %}
+    <div class="btn-group">
+      {% if permisos.crear_calificacion %}<a href="?seccion=calificacion&accion=crear" class="btn">Crear Calificación</a>{% endif %}
+      {% if permisos.editar_calificacion %}<a href="?seccion=calificacion&accion=editar" class="btn">Editar Calificación</a>{% endif %}
+    </div>
+    {% endif %}
+    
+    {% if permisos.crear_usuario or permisos.editar_usuario %}
+    <div class="btn-group">
+      {% if permisos.crear_usuario %}<a href="?seccion=usuario&accion=crear" class="btn">Crear Usuario</a>{% endif %}
+      {% if permisos.editar_usuario %}<a href="?seccion=usuario&accion=editar" class="btn">Editar Usuario</a>{% endif %}
+    </div>
+    {% endif %}
+    
+    {% if permisos.crear_instrumento or permisos.editar_instrumento %}
+    <div class="btn-group">
+      {% if permisos.crear_instrumento %}<a href="?seccion=instrumento&accion=crear" class="btn">Crear Instrumento</a>{% endif %}
+      {% if permisos.editar_instrumento %}<a href="?seccion=instrumento&accion=editar" class="btn">Editar Instrumento</a>{% endif %}
+    </div>
+    {% endif %}
+    
+    {% if permisos.crear_rol or permisos.editar_rol %}
+    <div class="btn-group">
+      {% if permisos.crear_rol %}<a href="?seccion=rol&accion=crear" class="btn">Crear Rol</a>{% endif %}
+      {% if permisos.editar_rol %}<a href="?seccion=rol&accion=editar" class="btn">Editar Rol</a>{% endif %}
+    </div>
+    {% endif %}
+    
+    {% if permisos.crear_permiso or permisos.editar_permiso %}
+    <div class="btn-group">
+      {% if permisos.crear_permiso %}<a href="?seccion=permiso&accion=crear" class="btn">Crear Permiso</a>{% endif %}
+      {% if permisos.editar_permiso %}<a href="?seccion=permiso&accion=editar" class="btn">Editar Permiso</a>{% endif %}
+    </div>
+    {% endif %}
+    
+    {% if permisos.asignar_permisos %}
+    <div class="btn-group">
+      <a href="?seccion=asignacion_permisos" class="btn">Asignación de Permisos</a>
+    </div>
+    {% endif %}
+    
+    {% if permisos.editar_asignaciones %}
+    <div class="btn-group">
+      <a href="?seccion=asignacion_permisos_editacion" class="btn">Editar Asignaciones</a>
+    </div>
+    {% endif %}
+    
+    {% if permisos.crear_factorval or permisos.editar_factorval %}
+    <div class="btn-group">
+      {% if permisos.crear_factorval %}<a href="?seccion=factorval&accion=crear" class="btn">Crear FactorVal</a>{% endif %}
+      {% if permisos.editar_factorval %}<a href="?seccion=factorval&accion=editar" class="btn">Editar FactorVal</a>{% endif %}
+    </div>
+    {% endif %}
+    
+    {% if permisos.filtrar_calificaciones %}
+    <div class="btn-group">
+      <a href="?seccion=filtrar" class="btn">Filtrar Calificaciones</a>
+    </div>
+    {% endif %}
+    
+    {% if permisos.visualizar_usuarios %}
+    <div class="btn-group">
+      <a href="{% url 'visualizar_usuarios' %}" class="btn">Visualización de Usuarios</a>
+    </div>
+    {% endif %}
+    
+    {% if permisos.carga_masiva %}
+    <h3 class="mt-4">Carga masiva</h3>
+    <form method="post" action="{% url 'carga_masiva' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="file" name="archivo" accept=".json,.csv" required>
+      <button type="submit" class="btn">Subir archivo</button>
+    </form>
+    {% endif %}
+    
+    <div class="btn-group">
+      <a href="{% url 'logout' %}" class="btn btn-danger">Cerrar sesión</a>
+    </div>
   </div>
-  {% endif %}
-
-  {% if permisos.crear_usuario or permisos.editar_usuario %}
-  <div class="btn-group">
-    {% if permisos.crear_usuario %}<a href="?seccion=usuario&accion=crear" class="btn">Crear Usuario</a>{% endif %}
-    {% if permisos.editar_usuario %}<a href="?seccion=usuario&accion=editar" class="btn">Editar Usuario</a>{% endif %}
-  </div>
-  {% endif %}
-
-  {% if permisos.crear_instrumento or permisos.editar_instrumento %}
-  <div class="btn-group">
-    {% if permisos.crear_instrumento %}<a href="?seccion=instrumento&accion=crear" class="btn">Crear Instrumento</a>{% endif %}
-    {% if permisos.editar_instrumento %}<a href="?seccion=instrumento&accion=editar" class="btn">Editar Instrumento</a>{% endif %}
-  </div>
-  {% endif %}
-
-  {% if permisos.crear_rol or permisos.editar_rol %}
-  <div class="btn-group">
-    {% if permisos.crear_rol %}<a href="?seccion=rol&accion=crear" class="btn">Crear Rol</a>{% endif %}
-    {% if permisos.editar_rol %}<a href="?seccion=rol&accion=editar" class="btn">Editar Rol</a>{% endif %}
-  </div>
-  {% endif %}
-
-  {% if permisos.crear_permiso or permisos.editar_permiso %}
-  <div class="btn-group">
-    {% if permisos.crear_permiso %}<a href="?seccion=permiso&accion=crear" class="btn">Crear Permiso</a>{% endif %}
-    {% if permisos.editar_permiso %}<a href="?seccion=permiso&accion=editar" class="btn">Editar Permiso</a>{% endif %}
-  </div>
-  {% endif %}
-
-  {% if permisos.asignar_permisos %}
-  <div class="btn-group">
-    <a href="?seccion=asignacion_permisos" class="btn">Asignación de Permisos</a>
-  </div>
-  {% endif %}
-
-  {% if permisos.editar_asignaciones %}
-  <div class="btn-group">
-    <a href="?seccion=asignacion_permisos_editacion" class="btn">Editar Asignaciones</a>
-  </div>
-  {% endif %}
-
-  {% if permisos.crear_factorval or permisos.editar_factorval %}
-  <div class="btn-group">
-    {% if permisos.crear_factorval %}<a href="?seccion=factorval&accion=crear" class="btn">Crear FactorVal</a>{% endif %}
-    {% if permisos.editar_factorval %}<a href="?seccion=factorval&accion=editar" class="btn">Editar FactorVal</a>{% endif %}
-  </div>
-  {% endif %}
-
-  {% if permisos.filtrar_calificaciones %}
-  <div class="btn-group">
-    <a href="?seccion=filtrar" class="btn">Filtrar Calificaciones</a>
-  </div>
-  {% endif %}
-
-  {% if permisos.visualizar_usuarios %}
-  <div class="btn-group">
-    <a href="{% url 'visualizar_usuarios' %}" class="btn">Visualización de Usuarios</a>
-  </div>
-  {% endif %}
-
-  {% if permisos.carga_masiva %}
-  <h3 class="mt-4">Carga masiva</h3>
-  <form method="post" action="{% url 'carga_masiva' %}" enctype="multipart/form-data">
-    {% csrf_token %}
-    <input type="file" name="archivo" accept=".json,.csv" required>
-    <button type="submit" class="btn">Subir archivo</button>
-  </form>
-  {% endif %}
-
-  <div class="btn-group">
-    <a href="{% url 'logout' %}" class="btn btn-danger">Cerrar sesión</a>
-  </div>
-</div>
-
-<div class="right-box">
-  {% if seccion == 'calificacion' and accion == 'crear' %}
-    <div class="card">
-      <h2>Crear Calificación</h2>
-      <form method="post" action="{% url 'guardar_calificacion' %}">
-        {% csrf_token %}
-        <input type="hidden" name="usuario_id_usuario" value="{{ request.user.id }}">
-        <label>Monto ($)</label><input type="text" name="monto" class="solo-float" required>
-        <label>Factor (%)</label><input type="text" name="factor" class="solo-float" required>
-        <label>Período</label><input type="month" name="periodo" max="{{hoy|date:'Y-m'}}" required>
-        <label>Instrumento</label>
-        <select name="instrumento" required>
-          <option value="">-- Seleccione --</option>
-          {% for i in instrumentos %}<option value="{{ i.id_instru }}">{{ i.nombre }}</option>{% endfor %}
-        </select>
-        <label>Estado</label>
-        <select name="estado" required>
-          <option value="ACTIVO">ACTIVO</option>
-          <option value="INACTIVO">INACTIVO</option>
-        </select>
-        <label>Usuario</label>
-        <select name="usuario_id_usuario" required>
-          <option value="">-- Seleccione</option>
-          {% for u in usuarios %}<option value="{{ u.id_usuario }}">{{ u.nombre }}</option>{% endfor %}
-        </select>
-        <label>Factor Val</label>
-        <select name="factor_val_id_factor" required>
-          <option value="">-- Seleccione</option>
-          {% for fv in factor_vals %}<option value="{{ fv.id_factor }}">{{ fv.id_factor }}</option>{% endfor %}
-        </select>
-        <button type="submit" class="btn-success mt-3">Crear Calificación</button>
-      </form>
-    </div>
-
-  {% elif seccion == 'calificacion' and accion == 'editar' and not obj_id %}
-    <div class="card">
-      <h2>Seleccione una Calificación para Editar</h2>
-      <div class="sql-table">
-        {% for c in calificaciones %}
-          <div class="sql-row">
-            <div class="sql-cell">
-              <strong>Instrumento:</strong> {{ c.instrumento.nombre }}<br>
-              <strong>Período:</strong> {{ c.periodo|date:"m/Y" }}<br>
-              <strong>Monto:</strong> ${{ c.monto|floatformat:0 }}
-            </div>
-            <div class="sql-action">
-              <a class="btn-edit" href="?seccion=calificacion&accion=editar&obj_id={{ c.calid }}">Editar</a>
-              {% if permisos.eliminar_calificacion %}
-              <a class="btn-danger" href="{% url 'eliminar_calificacion' c.calid %}" onclick="return confirm('¿Estás seguro de eliminar esta calificación?')">Eliminar</a>
-              {% endif %}
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-
-  {% elif seccion == 'calificacion' and accion == 'editar' and obj %}
-    <div class="card">
-      <h2>Editar Calificación</h2>
-      <form method="post" action="{% url 'actualizar_calificacion' obj.calid %}">
-        {% csrf_token %}
-        <label>Monto ($)</label><input type="text" name="monto" value="{{ obj.monto }}" class="solo-float" required>
-        <label>Factor (%)</label><input type="text" name="factor" value="{{ obj.factor }}" class="solo-float" required>
-        <label>Período</label><input type="month" name="periodo" value="{{ obj.periodo|date:'Y-m' }}" required>
-        <label>Instrumento</label>
-        <select name="instrumento" required>
-          {% for i in instrumentos %}<option value="{{ i.id_instru }}" {% if i.id_instru == obj.instrumento.id_instru %}selected{% endif %}>{{ i.nombre }}</option>{% endfor %}
-        </select>
-        <button type="submit" class="btn-success mt-3">Guardar cambios</button>
-      </form>
-    </div>
-
-  {% elif seccion == 'usuario' and accion == 'crear' %}
-    <div class="card">
-      <h2>Crear Usuario</h2>
-      <form method="post" action="{% url 'guardar_usuario' %}">
-        {% csrf_token %}
-        <label>Nombre</label><input type="text" name="nombre" class="solo-texto" required>
-        <label>RUT (sin puntos, con guión)</label><input type="text" name="rut" class="solo-rut" required>
-        <label>Email</label><input type="email" name="email" required>
-        <label>Contraseña</label>
-        <input type="password" name="password" required minlength="8" placeholder="Mínimo 8 caracteres">
-        <label>Rol</label>
-        <select name="rol" required>
-          {% for r in roles %}<option value="{{ r.id_rol }}">{{ r.nombre_rol }}</option>{% endfor %}
-        </select>
-        <button type="submit" class="btn-success mt-3">Crear Usuario</button>
-      </form>
-    </div>
-
-  {% elif seccion == 'usuario' and accion == 'editar' and not obj_id %}
-    <div class="card">
-      <h2>Seleccione un Usuario para Editar</h2>
-      <div class="sql-table">
-        {% for u in usuarios %}
-          <div class="sql-row">
-            <div class="sql-cell">
-              <strong>Nombre:</strong> {{ u.nombre }}<br>
-              <strong>RUT:</strong> {{ u.rut }}<br>
-              <strong>Rol:</strong> {{ u.rol_id.nombre_rol }}
-            </div>
-            <div class="sql-action">
-              <a class="btn-edit" href="?seccion=usuario&accion=editar&obj_id={{ u.id_usuario }}">Editar</a>
-              {% if permisos.eliminar_usuario %}
-              <a class="btn-danger" href="{% url 'eliminar_usuario' u.id_usuario %}" onclick="return confirm('¿Estás seguro de eliminar este usuario?')">Eliminar</a>
-              {% endif %}
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-
-  {% elif seccion == 'usuario' and accion == 'editar' and obj %}
-    <div class="card">
-      <h2>Editar Usuario</h2>
-      <form method="post" action="{% url 'actualizar_usuario' obj.id_usuario %}">
-        {% csrf_token %}
-        <label>Nombre</label><input type="text" name="nombre" value="{{ obj.nombre }}" class="solo-texto" required>
-        <label>RUT (sin puntos, con guión)</label><input type="text" name="rut" value="{{ obj.rut }}" class="solo-rut" required>
-        <label>Email</label><input type="email" name="email" value="{{ obj.email }}" required>
-        <label>Nueva Contraseña (opcional)</label>
-        <input type="password" name="password" placeholder="Dejar vacío para la mantener actual">
-        <label>Rol</label>
-        <select name="rol" required>
-          {% for r in roles %}<option value="{{ r.id_rol }}" {% if r.id_rol == obj.rol_id.id_rol %}selected{% endif %}>{{ r.nombre_rol }}</option>{% endfor %}
-        </select>
-        <button type="submit" class="btn-success mt-3">Guardar cambios</button>
-      </form>
-    </div>
-
-  {% elif seccion == 'instrumento' and accion == 'crear' %}
-    <div class="card">
-      <h2>Crear Instrumento</h2>
-      <form method="post" action="{% url 'guardar_instrumento' %}">
-        {% csrf_token %}
-        <label>Nombre</label><input type="text" name="nombre" class="solo-texto" required>
-        <label>Regla</label><textarea name="regla_es" class="form-control" rows="3" required></textarea>
-        <label>Estado</label>
-        <select name="estado" required>
-          <option value="ACTIVO">ACTIVO</option>
-          <option value="INACTIVO">INACTIVO</option>
-        </select>
-        <button type="submit" class="btn-success mt-3">Crear Instrumento</button>
-      </form>
-    </div>
-
-  {% elif seccion == 'instrumento' and accion == 'editar' and not obj_id %}
-    <div class="card">
-      <h2>Seleccione un Instrumento para Editar</h2>
-      <div class="sql-table">
-        {% for i in instrumentos %}
-          <div class="sql-row">
-            <div class="sql-cell">
-              <strong>Nombre:</strong> {{ i.nombre }}<br>
-              <strong>Estado:</strong> {{ i.estado }}
-            </div>
-            <div class="sql-action">
-              <a class="btn-edit" href="?seccion=instrumento&accion=editar&obj_id={{ i.id_instru }}">Editar</a>
-              {% if permisos.eliminar_instrumento %}
-              <a class="btn-danger" href="{% url 'eliminar_instrumento' i.id_instru %}" onclick="return confirm('¿Estás seguro de eliminar este instrumento?')">Eliminar</a>
-              {% endif %}
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-
-  {% elif seccion == 'instrumento' and accion == 'editar' and obj %}
-    <div class="card">
-      <h2>Editar Instrumento</h2>
-      <form method="post" action="{% url 'actualizar_instrumento' obj.id_instru %}">
-        {% csrf_token %}
-        <label>Nombre</label><input type="text" name="nombre" value="{{ obj.nombre }}" class="solo-texto" required>
-        <label>Regla</label><textarea name="regla_es" class="form-control" rows="3" required>{{ obj.regla_es }}</textarea>
-        <label>Estado</label>
-        <select name="estado" required>
-          <option value="ACTIVO" {% if obj.estado == 'ACTIVO' %}selected{% endif %}>ACTIVO</option>
-          <option value="INACTIVO" {% if obj.estado == 'INACTIVO' %}selected{% endif %}>INACTIVO</option>
-        </select>
-        <button type="submit" class="btn-success mt-3">Guardar cambios</button>
-      </form>
-    </div>
-
-  {% elif seccion == 'rol' and accion == 'crear' %}
-    <div class="card">
-      <h2>Crear Rol</h2>
-      <form method="post" action="{% url 'guardar_rol' %}">
-        {% csrf_token %}
-        <label>Nombre del Rol</label><input type="text" name="nombre_rol" class="solo-texto" required>
-        <label>Descripción</label><textarea name="descripcion_rol" class="form-control solo-texto" rows="3" required></textarea>
-        <button type="submit" class="btn-success mt-3">Crear Rol</button>
-      </form>
-    </div>
-
-  {% elif seccion == 'rol' and accion == 'editar' and not obj_id %}
-    <div class="card">
-      <h2>Seleccione un Rol para Editar</h2>
-      <div class="sql-table">
-        {% for r in roles %}
-          <div class="sql-row">
-            <div class="sql-cell">
-              <strong>Rol:</strong> {{ r.nombre_rol }}<br>
-              <strong>Descripción:</strong> {{ r.descripcion_rol|truncatewords:10 }}
-            </div>
-            <div class="sql-action">
-              <a class="btn-edit" href="?seccion=rol&accion=editar&obj_id={{ r.id_rol }}">Editar</a>
-              {% if permisos.eliminar_rol %}
-              <a class="btn-danger" href="{% url 'eliminar_rol' r.id_rol %}" onclick="return confirm('¿Estás seguro de eliminar este rol?')">Eliminar</a>
-              {% endif %}
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-
-  {% elif seccion == 'rol' and accion == 'editar' and obj %}
-    <div class="card">
-      <h2>Editar Rol</h2>
-      <form method="post" action="{% url 'guardar_rol' %}">
-        {% csrf_token %}
-        <input type="hidden" name="id_rol" value="{{ obj.id_rol }}">
-        <label>Nombre del Rol</label><input type="text" name="nombre_rol" value="{{ obj.nombre_rol }}" class="solo-texto" required>
-        <label>Descripción</label><textarea name="descripcion_rol" class="form-control solo-texto" rows="3" required>{{ obj.descripcion_rol }}</textarea>
-        <button type="submit" class="btn-success mt-3">Guardar cambios</button>
-      </form>
-    </div>
-
-  {% elif seccion == 'permiso' and accion == 'crear' %}
-    <div class="card">
-      <h2>Crear Permiso</h2>
-      <form method="post" action="{% url 'guardar_permiso' %}">
-        {% csrf_token %}
-        <label>Nombre del Permiso</label><input type="text" name="nombre" class="solo-texto" required>
-        <label>Descripción</label><textarea name="descripcion" class="form-control solo-texto" rows="3" required></textarea>
-        <button type="submit" class="btn-success mt-3">Crear Permiso</button>
-      </form>
-    </div>
-
-  {% elif seccion == 'permiso' and accion == 'editar' and not obj_id %}
-    <div class="card">
-      <h2>Seleccione un Permiso para Editar</h2>
-      <div class="sql-table">
-        {% for p in permisos %}
-          <div class="sql-row">
-            <div class="sql-cell">
-              <strong>Permiso:</strong> {{ p.nombre }}<br>
-              <strong>Descripción:</strong> {{ p.descripcion_permiso|truncatewords:10 }}
-            </div>
-            <div class="sql-action">
-              <a class="btn-edit" href="?seccion=permiso&accion=editar&obj_id={{ p.id_permiso }}">Editar</a>
-              {% if permisos.eliminar_permiso %}
-              <a class="btn-danger" href="{% url 'eliminar_permiso' p.id_permiso %}" onclick="return confirm('¿Estás seguro de eliminar este permiso?')">Eliminar</a>
-              {% endif %}
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-
-  {% elif seccion == 'permiso' and accion == 'editar' and obj_id %}
-    <div class="card">
-      <h2>Editar Permiso</h2>
-      <form method="post" action="{% url 'guardar_permiso' %}">
-        {% csrf_token %}
-        <input type="hidden" name="id_permiso" value="{{ obj.id_permiso }}">
-        <label>Nombre del Permiso</label><input type="text" name="nombre" value="{{ obj.nombre }}" class="solo-texto" required>
-        <label>Descripción</label><textarea name="descripcion" class="form-control solo-texto" rows="3" required>{{ obj.descripcion_permiso }}</textarea>
-        <button type="submit" class="btn-success mt-3">Guardar cambios</button>
-      </form>
-    </div>
-
-  {% elif seccion == 'factorval' and accion == 'crear' %}
-    <div class="card">
-      <h2>Crear FactorVal</h2>
-      <form method="post" action="{% url 'crear_factorv' %}" id="formCrearFactor">
-        {% csrf_token %}
-        <label>Rango Mínimo</label>
-        <input type="text" name="rango_minimo" class="solo-float-validado" required>
-        <label>Rango Máximo</label>
-        <input type="text" name="rango_maximo" class="solo-float-validado" required>
-        <label>Descripción</label>
-        <textarea name="descripcion" rows="2" placeholder="Ej: Rango bajo" required></textarea>
-        <button type="submit" class="btn-success mt-3" id="btnCrearFactor">Crear FactorVal</button>
-        <div id="msgErrorFactor" style="color:#ff4d4d;margin-top:10px;font-size:14px;"></div>
-      </form>
-    </div>
-    <script>
-      (function(){
-        const form = document.getElementById('formCrearFactor');
-        const btn = document.getElementById('btnCrearFactor');
-        const msg = document.getElementById('msgErrorFactor');
-        function validar(){
-          const min = parseFloat(form.rango_minimo.value) || 0;
-          const max = parseFloat(form.rango_maximo.value) || 0;
-          const desc = form.descripcion.value.trim();
-          if (!desc || min >= max) {
-            btn.style.display = 'none';
-            msg.textContent = 'El botón de crear o guardar cambios no aparecerá porque se hicieron alguna de estas cosas: 1: Se dejó vacío la entrada Descripción 2: Se colocó un número mayor en rango mínimo y en rango máximo uno menor. Forma de solucionarlo: Poner texto en el campo Descripción y colocar el número menor en Rango Mínimo y el número mayor en Rango Máximo.';
-          } else {
-            btn.style.display = 'block';
-            msg.textContent = '';
-          }
-        }
-        form.addEventListener('input', validar);
-        validar();
-      })();
-    </script>
-
-  {% elif seccion == 'factorval' and accion == 'editar' and not obj_id %}
-    <div class="card">
-      <h2>Editar FactorVal</h2>
-      <div class="sql-table">
-        {% for fv in factor_vals %}
-          <div class="sql-row">
-            <div class="sql-cell">
-              <strong>ID:</strong> {{ fv.id_factor }}<br>
-              <strong>Rango:</strong> {{ fv.rango_minimo }} - {{ fv.rango_maximo }}
-            </div>
-            <div class="sql-action">
-              <a class="btn-edit" href="?seccion=factorval&accion=editar&obj_id={{ fv.id_factor }}">Editar</a>
-              {% if permisos.eliminar_factorval %}
-              <a class="btn-danger" href="{% url 'eliminar_factorv' fv.id_factor %}" onclick="return confirm('¿Estás seguro de eliminar este registro?')">Eliminar</a>
-              {% endif %}
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-
-  {% elif seccion == 'factorval' and accion == 'editar' and obj %}
-    <div class="card">
-      <h2>Editar FactorVal</h2>
-      <form method="post" action="{% url 'actualizar_factorv' obj.id_factor %}" id="formEditarFactor">
-        {% csrf_token %}
-        <label>Rango Mínimo</label>
-        <input type="text" name="rango_minimo" value="{{ obj.rango_minimo }}" class="solo-float-validado" required>
-        <label>Rango Máximo</label>
-        <input type="text" name="rango_maximo" value="{{ obj.rango_maximo }}" class="solo-float-validado" required>
-        <label>Descripción</label>
-        <textarea name="descripcion" rows="2" required>{{ obj.descripcion }}</textarea>
-        <button type="submit" class="btn-success mt-3" id="btnEditarFactor">Guardar cambios</button>
-        <div id="msgErrorFactorEdit" style="color:#ff4d4d;margin-top:10px;font-size:14px;"></div>
-      </form>
-    </div>
-    <script>
-      (function(){
-        const form = document.getElementById('formEditarFactor');
-        const btn = document.getElementById('btnEditarFactor');
-        const msg = document.getElementById('msgErrorFactorEdit');
-        function validar(){
-          const min = parseFloat(form.rango_minimo.value) || 0;
-          const max = parseFloat(form.rango_maximo.value) || 0;
-          const desc = form.descripcion.value.trim();
-          if (!desc || min >= max) {
-            btn.style.display = 'none';
-            msg.textContent = 'El botón de crear o guardar cambios no aparecerá porque se hicieron alguna de estas cosas: 1: Se dejó vacío la entrada Descripción 2: Se colocó un número mayor en rango mínimo y en rango máximo uno menor. Forma de solucionarlo: Poner texto en el campo Descripción y colocar el número menor en Rango Mínimo y el número mayor en Rango Máximo.';
-          } else {
-            btn.style.display = 'block';
-            msg.textContent = '';
-          }
-        }
-        form.addEventListener('input', validar);
-        validar();
-      })();
-    </script>
-
-  {% elif seccion == 'filtrar' %}
-    <div class="card">
-      <h2>Filtrar Calificaciones</h2>
-      <form method="get" action="{% url 'filtrar_calificaciones' %}">
-        <label>RUT (sin puntos, con guión)</label><input type="text" name="rut">
-        <label>Fecha (período)</label><input type="month" name="fecha">
-        <label>Monto mínimo</label><input type="text" name="monto_min" placeholder="0" class="solo-float">
-        <label>Monto máximo</label><input type="text" name="monto_max" placeholder="999999999" class="solo-float">
-        <label>Tipo de instrumento</label><input type="text" name="instrumento" placeholder="Ej: Bono" class="solo-texto">
-        <label>Factor Val ID</label><input type="number" name="factor_val" placeholder="Ej: 1">
-        <button type="submit" class="btn-success mt-3">Buscar</button>
-      </form>
-    </div>
-
-  {% elif seccion == 'asignacion_permisos' %}
-    <div class="card">
-      <h2>Asignar Permiso a Rol</h2>
-      <form method="post" action="{% url 'gestionar_asignacion_permisos' %}">
-        {% csrf_token %}
-        <label>Rol</label>
-        <select name="rol" required>
-          <option value="">-- Seleccione un rol --</option>
-          {% for r in roles %}
-            <option value="{{ r.id_rol }}">{{ r.nombre_rol }}</option>
-          {% endfor %}
-        </select>
-
-        <label>Permiso</label>
-        <select name="permiso" required>
-          <option value="">-- Seleccione un permiso --</option>
-          {% for p in permisos %}
-            <option value="{{ p.id_permiso }}">{{ p.nombre }}</option>
-          {% endfor %}
-        </select>
-
-        <input type="hidden" name="accion" value="crear">
-        <button type="submit" class="btn-success mt-3">Asignar Permiso</button>
-      </form>
-
-      <div style="margin-top:1.5rem;display:flex;gap:.5rem;">
-        <form method="post" action="{% url 'asignar_todos_permisos' %}" style="display:inline;">
+  
+  <div class="right-box">
+    {% if seccion == 'calificacion' and accion == 'crear' %}
+      <div class="card">
+        <h2>Crear Calificación</h2>
+        <form method="post" action="{% url 'guardar_calificacion' %}">
           {% csrf_token %}
-          <input type="hidden" name="rol_id" id="rol-id-masivo" value="">
-          <button type="submit" class="btn btn-success"
-                  onclick="return document.getElementById('rol-id-masivo').value !== '' || (alert('Primero selecciona un rol en la lista superior'), false);">
-            Asignar todos los permisos al rol
-          </button>
+          <label>Monto ($)</label><input type="text" name="monto" class="solo-float" required>
+          <label>Factor (%)</label><input type="text" name="factor" class="solo-float" required>
+          <label>Período</label><input type="month" name="periodo" max="{{hoy|date:'Y-m'}}" required>
+          <label>Instrumento</label>
+          <select name="instrumento" required>
+            <option value="">-- Seleccione --</option>
+            {% for i in instrumentos %}<option value="{{ i.id_instru }}">{{ i.nombre }}</option>{% endfor %}
+          </select>
+          <label>Estado</label>
+          <select name="estado" required>
+            <option value="ACTIVO">ACTIVO</option>
+            <option value="INACTIVO">INACTIVO</option>
+          </select>
+          <label>Usuario</label>
+          <select name="usuario_id_usuario" required>
+            <option value="">-- Seleccione</option>
+            {% for u in usuarios %}
+            <option value="{{ u.id_usuario }}"
+            {% if u.id_usuario == obj.usuario_id_usuario.perfil.id_usuario %}selected{% endif %}>
+            {{ u.nombre }}
+            </option>
+            {% endfor %}
+          </select>
+          <label>Factor Val</label>
+          <select name="factor_val_id_factor" required>
+            <option value="">-- Seleccione</option>
+            {% for fv in factor_vals %}<option value="{{ fv.id_factor }}">{{ fv.descripcion }} ({{ fv.rango_minimo }} - {{ fv.rango_maximo }})</option>{% endfor %}
+          </select>
+          <button type="submit" class="btn-success mt-3">Crear Calificación</button>
         </form>
-
-        <a href="?seccion=asignacion_permisos" class="btn btn-secondary">
-          Ingresar individualmente permisos
-        </a>
       </div>
-
-      <script>
-        (function(){
-          const selectRol = document.querySelector('select[name="rol"]');
-          const hiddenRol = document.getElementById('rol-id-masivo');
-          selectRol.addEventListener('change', function(){
-            hiddenRol.value = this.value;
-          });
-          hiddenRol.value = selectRol.value;
-        })();
-      </script>
-
-  {% elif seccion == 'asignacion_permisos_editacion' %}
-    <div class="card">
-      <h2>Editar / Eliminar Asignaciones de Permisos</h2>
-      <div class="sql-table">
-        {% for a in asignaciones %}
-          <div class="sql-row">
-            <form method="post" action="{% url 'gestionar_asignacion_permisos_editacion' %}" style="width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;">
-              {% csrf_token %}
-              <input type="hidden" name="asignacion_id" value="{{ a.id }}">
-              <input type="hidden" name="accion" value="editar">
-
-              <div class="sql-cell" style="flex:1;">
-                <label>Rol</label><br>
-                <select name="nuevo_rol" style="width:100%;">
-                  {% for r in roles %}
-                    <option value="{{ r.id_rol }}" {% if r.id_rol == a.rol.id_rol %}selected{% endif %}>{{ r.nombre_rol }}</option>
-                  {% endfor %}
-                </select>
+    
+    {% elif seccion == 'calificacion' and accion == 'editar' and not obj_id %}
+      <div class="card">
+        <h2>Seleccione una Calificación para Editar</h2>
+        <div class="sql-table">
+          {% for c in calificaciones %}
+            <div class="sql-row">
+              <div class="sql-cell">
+                <strong>Instrumento:</strong> {{ c.instrumento.nombre }}<br>
+                <strong>Período:</strong> {{ c.periodo|date:"m/Y" }}<br>
+                <strong>Monto:</strong> ${{ c.monto|floatformat:0 }}
               </div>
-
-              <div class="sql-cell" style="flex:1;">
-                <label>Permiso</label><br>
-                <select name="nuevo_permiso" style="width:100%;">
-                  {% for p in permisos %}
-                    <option value="{{ p.id_permiso }}" {% if p.id_permiso == a.permiso.id_permiso %}selected{% endif %}>{{ p.nombre }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-
-              <div class="sql-action" style="display:flex;gap:6px;">
-                <button type="submit" class="btn" title="Guardar cambios">💾</button>
-                {% if permisos.eliminar_asignaciones %}
-                <button type="submit" formaction="{% url 'gestionar_asignacion_permisos_editacion' %}?accion=eliminar" name="accion" value="eliminar" class="btn-danger" title="Eliminar asignación" onclick="return confirm('¿Estás seguro de eliminar esta asignación?')">🗑️</button>
+              <div class="sql-action">
+                <a class="btn-edit" href="?seccion=calificacion&accion=editar&obj_id={{ c.calid }}">Editar</a>
+                {% if permisos.eliminar_calificacion %}
+                <a class="btn-danger" href="{% url 'eliminar_calificacion' c.calid %}" onclick="return confirm('¿Estás seguro de eliminar esta calificación?')">Eliminar</a>
                 {% endif %}
               </div>
-            </form>
-          </div>
-        {% empty %}
-          <p style="color:#ccc;">No hay asignaciones creadas aún.</p>
-        {% endfor %}
+            </div>
+          {% endfor %}
+        </div>
       </div>
-    </div>
-  {% endif %}
-</div>
+    
+    {% elif seccion == 'calificacion' and accion == 'editar' and obj %}
+      <div class="card">
+        <h2>Editar Calificación</h2>
+        <form method="post" action="{% url 'actualizar_calificacion' obj.calid %}">
+          {% csrf_token %}
+          <label>Monto ($)</label><input type="text" name="monto" value="{{ obj.monto }}" class="solo-float" required>
+          <label>Factor (%)</label><input type="text" name="factor" value="{{ obj.factor }}" class="solo-float" required>
+          <label>Período</label><input type="month" name="periodo" value="{{ obj.periodo|date:'Y-m' }}" required>
+          <label>Instrumento</label>
+          <select name="instrumento" required>
+            {% for i in instrumentos %}<option value="{{ i.id_instru }}" {% if i.id_instru == obj.instrumento.id_instru %}selected{% endif %}>{{ i.nombre }}</option>{% endfor %}
+          </select>
+          <label>Estado</label>
+          <select name="estado" required>
+            <option value="ACTIVO" {% if obj.estado == 'ACTIVO' %}selected{% endif %}>ACTIVO</option>
+            <option value="INACTIVO" {% if obj.estado == 'INACTIVO' %}selected{% endif %}>INACTIVO</option>
+          </select>
+          <label>Usuario</label>
+          <select name="usuario_id_usuario" required>
+            {% for u in usuarios %}
+            <option value="{{ u.id_usuario }}"
+            {% if u.id_usuario == obj.usuario_id_usuario.perfil.id_usuario %}selected{% endif %}>
+            {{ u.nombre }}
+            </option>
+            {% endfor %}
+          </select>
+          <label>Factor Val</label>
+          <select name="factor_val_id_factor" required>
+            {% for fv in factor_vals %}<option value="{{ fv.id_factor }}" {% if fv.id_factor == obj.factor_val_id_factor.id_factor %}selected{% endif %}>{{ fv.id_factor }}</option>{% endfor %}
+          </select>
+          <button type="submit" class="btn-success mt-3">Guardar cambios</button>
+        </form>
+      </div>
+    
+    {% elif seccion == 'usuario' and accion == 'crear' %}
+      <div class="card">
+        <h2>Crear Usuario</h2>
+        <form method="post" action="{% url 'guardar_usuario' %}">
+          {% csrf_token %}
+          <label>Nombre</label><input type="text" name="nombre" class="solo-texto" required>
+          <label>RUT (sin puntos, con guión)</label><input type="text" name="rut" class="solo-rut" required>
+          <label>Email</label><input type="email" name="email" required>
+          <label>Contraseña</label>
+          <input type="password" name="password" required minlength="8" placeholder="Mínimo 8 caracteres">
+          <label>Rol</label>
+          <select name="rol" required>
+            {% for r in roles %}<option value="{{ r.id_rol }}">{{ r.nombre_rol }}</option>{% endfor %}
+          </select>
+          <button type="submit" class="btn-success mt-3">Crear Usuario</button>
+        </form>
+      </div>
+    
+    {% elif seccion == 'usuario' and accion == 'editar' and not obj_id %}
+      <div class="card">
+        <h2>Seleccione un Usuario para Editar</h2>
+        <div class="sql-table">
+          {% for u in usuarios %}
+            <div class="sql-row">
+              <div class="sql-cell">
+                <strong>Nombre:</strong> {{ u.nombre }}<br>
+                <strong>RUT:</strong> {{ u.rut }}<br>
+                <strong>Rol:</strong> {{ u.rol_id.nombre_rol }}
+              </div>
+              <div class="sql-action">
+                <a class="btn-edit" href="?seccion=usuario&accion=editar&obj_id={{ u.id_usuario }}">Editar</a>
+                {% if permisos.eliminar_usuario %}
+                <a class="btn-danger" href="{% url 'eliminar_usuario' u.id_usuario %}" onclick="return confirm('¿Estás seguro de eliminar este usuario?')">Eliminar</a>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    
+    {% elif seccion == 'usuario' and accion == 'editar' and obj %}
+      <div class="card">
+        <h2>Editar Usuario</h2>
+        <form method="post" action="{% url 'actualizar_usuario' obj.id_usuario %}">
+          {% csrf_token %}
+          <label>Nombre</label><input type="text" name="nombre" value="{{ obj.nombre }}" class="solo-texto" required>
+          <label>RUT (sin puntos, con guión)</label><input type="text" name="rut" value="{{ obj.rut }}" class="solo-rut" required>
+          <label>Email</label><input type="email" name="email" value="{{ obj.email }}" required>
+          <label>Nueva Contraseña (opcional)</label>
+          <input type="password" name="password" placeholder="Dejar vacío para la mantener actual">
+          <label>Rol</label>
+          <select name="rol" required>
+            {% for r in roles %}<option value="{{ r.id_rol }}" {% if r.id_rol == obj.rol_id.id_rol %}selected{% endif %}>{{ r.nombre_rol }}</option>{% endfor %}
+          </select>
+          <button type="submit" class="btn-success mt-3">Guardar cambios</button>
+        </form>
+      </div>
+    
+    {% elif seccion == 'instrumento' and accion == 'crear' %}
+      <div class="card">
+        <h2>Crear Instrumento</h2>
+        <form method="post" action="{% url 'guardar_instrumento' %}">
+          {% csrf_token %}
+          <label>Nombre</label><input type="text" name="nombre" class="solo-texto" required>
+          <label>Regla</label><textarea name="regla_es" class="form-control" rows="3" required></textarea>
+          <label>Estado</label>
+          <select name="estado" required>
+            <option value="ACTIVO">ACTIVO</option>
+            <option value="INACTIVO">INACTIVO</option>
+          </select>
+          <button type="submit" class="btn-success mt-3">Crear Instrumento</button>
+        </form>
+      </div>
+    
+    {% elif seccion == 'instrumento' and accion == 'editar' and not obj_id %}
+      <div class="card">
+        <h2>Seleccione un Instrumento para Editar</h2>
+        <div class="sql-table">
+          {% for i in instrumentos %}
+            <div class="sql-row">
+              <div class="sql-cell">
+                <strong>Nombre:</strong> {{ i.nombre }}<br>
+                <strong>Estado:</strong> {{ i.estado }}
+              </div>
+              <div class="sql-action">
+                <a class="btn-edit" href="?seccion=instrumento&accion=editar&obj_id={{ i.id_instru }}">Editar</a>
+                {% if permisos.eliminar_instrumento %}
+                <a class="btn-danger" href="{% url 'eliminar_instrumento' i.id_instru %}" onclick="return confirm('¿Estás seguro de eliminar este instrumento?')">Eliminar</a>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    
+    {% elif seccion == 'instrumento' and accion == 'editar' and obj %}
+      <div class="card">
+        <h2>Editar Instrumento</h2>
+        <form method="post" action="{% url 'actualizar_instrumento' obj.id_instru %}">
+          {% csrf_token %}
+          <label>Nombre</label><input type="text" name="nombre" value="{{ obj.nombre }}" class="solo-texto" required>
+          <label>Regla</label><textarea name="regla_es" class="form-control" rows="3" required>{{ obj.regla_es }}</textarea>
+          <label>Estado</label>
+          <select name="estado" required>
+            <option value="ACTIVO" {% if obj.estado == 'ACTIVO' %}selected{% endif %}>ACTIVO</option>
+            <option value="INACTIVO" {% if obj.estado == 'INACTIVO' %}selected{% endif %}>INACTIVO</option>
+          </select>
+          <button type="submit" class="btn-success mt-3">Guardar cambios</button>
+        </form>
+      </div>
+    
+    {% elif seccion == 'rol' and accion == 'crear' %}
+      <div class="card">
+        <h2>Crear Rol</h2>
+        <form method="post" action="{% url 'guardar_rol' %}">
+          {% csrf_token %}
+          <label>Nombre del Rol</label><input type="text" name="nombre_rol" class="solo-texto" required>
+          <label>Descripción</label><textarea name="descripcion_rol" class="form-control solo-texto" rows="3" required></textarea>
+          <button type="submit" class="btn-success mt-3">Crear Rol</button>
+        </form>
+      </div>
+    
+    {% elif seccion == 'rol' and accion == 'editar' and not obj_id %}
+      <div class="card">
+        <h2>Seleccione un Rol para Editar</h2>
+        <div class="sql-table">
+          {% for r in roles %}
+            <div class="sql-row">
+              <div class="sql-cell">
+                <strong>Rol:</strong> {{ r.nombre_rol }}<br>
+                <strong>Descripción:</strong> {{ r.descripcion_rol|truncatewords:10 }}
+              </div>
+              <div class="sql-action">
+                <a class="btn-edit" href="?seccion=rol&accion=editar&obj_id={{ r.id_rol }}">Editar</a>
+                {% if permisos.eliminar_rol %}
+                <a class="btn-danger" href="{% url 'eliminar_rol' r.id_rol %}" onclick="return confirm('¿Estás seguro de eliminar este rol?')">Eliminar</a>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    
+    {% elif seccion == 'rol' and accion == 'editar' and obj %}
+      <div class="card">
+        <h2>Editar Rol</h2>
+        <form method="post" action="{% url 'guardar_rol' %}">
+          {% csrf_token %}
+          <input type="hidden" name="id_rol" value="{{ obj.id_rol }}">
+          <label>Nombre del Rol</label><input type="text" name="nombre_rol" value="{{ obj.nombre_rol }}" class="solo-texto" required>
+          <label>Descripción</label><textarea name="descripcion_rol" class="form-control solo-texto" rows="3" required>{{ obj.descripcion_rol }}</textarea>
+          <button type="submit" class="btn-success mt-3">Guardar cambios</button>
+        </form>
+      </div>
+    
+    {% elif seccion == 'permiso' and accion == 'crear' %}
+      <div class="card">
+        <h2>Crear Permiso</h2>
+        <form method="post" action="{% url 'guardar_permiso' %}">
+          {% csrf_token %}
+          <label>Nombre del Permiso</label><input type="text" name="nombre" class="solo-texto" required>
+          <label>Descripción</label><textarea name="descripcion" class="form-control solo-texto" rows="3" required></textarea>
+          <button type="submit" class="btn-success mt-3">Crear Permiso</button>
+        </form>
+      </div>
+    
+    {% elif seccion == 'permiso' and accion == 'editar' and not obj_id %}
+      <div class="card">
+        <h2>Seleccione un Permiso para Editar</h2>
+        <div class="sql-table">
+          {% for p in permisos_objs %}
+            <div class="sql-row">
+              <div class="sql-cell">
+                <strong>Permiso:</strong> {{ p.nombre }}<br>
+                <strong>Descripción:</strong> {{ p.descripcion_permiso|truncatewords:10 }}
+              </div>
+              <div class="sql-action">
+                <a class="btn-edit" href="?seccion=permiso&accion=editar&obj_id={{ p.id_permiso }}">Editar</a>
+                {% if permisos.eliminar_permiso %}
+                <a class="btn-danger" href="{% url 'eliminar_permiso' p.id_permiso %}" onclick="return confirm('¿Estás seguro de eliminar este permiso?')">Eliminar</a>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    
+    {% elif seccion == 'permiso' and accion == 'editar' and obj_id %}
+      <div class="card">
+        <h2>Editar Permiso</h2>
+        <form method="post" action="{% url 'guardar_permiso' %}">
+          {% csrf_token %}
+          <input type="hidden" name="id_permiso" value="{{ obj.id_permiso }}">
+          <label>Nombre del Permiso</label><input type="text" name="nombre" value="{{ obj.nombre }}" class="solo-texto" required>
+          <label>Descripción</label><textarea name="descripcion" class="form-control solo-texto" rows="3" required>{{ obj.descripcion_permiso }}</textarea>
+          <button type="submit" class="btn-success mt-3">Guardar cambios</button>
+        </form>
+      </div>
+    
+    {% elif seccion == 'factorval' and accion == 'crear' %}
+      <div class="card">
+        <h2>Crear FactorVal</h2>
+        <form method="post" action="{% url 'crear_factorv' %}" id="formCrearFactor">
+          {% csrf_token %}
+          <label>Rango Mínimo</label>
+          <input type="text" name="rango_minimo" class="solo-float-validado" required>
+          <label>Rango Máximo</label>
+          <input type="text" name="rango_maximo" class="solo-float-validado" required>
+          <label>Descripción</label>
+          <textarea name="descripcion" rows="2" placeholder="Ej: Rango bajo" required></textarea>
+          <button type="submit" class="btn-success mt-3" id="btnCrearFactor">Crear FactorVal</button>
+          <div id="msgErrorFactor" style="color:#ff4d4d;margin-top:10px;font-size:14px;"></div>
+        </form>
+      </div>
+      <script>
+        (function(){
+          const form = document.getElementById('formCrearFactor');
+          const btn = document.getElementById('btnCrearFactor');
+          const msg = document.getElementById('msgErrorFactor');
+          function validar(){
+            const min = parseFloat(form.rango_minimo.value) || 0;
+            const max = parseFloat(form.rango_maximo.value) || 0;
+            const desc = form.descripcion.value.trim();
+            if (!desc || min >= max) {
+              btn.style.display = 'none';
+              msg.textContent = 'El botón de crear o guardar cambios no aparecerá porque se hicieron alguna de estas cosas: 1: Se dejó vacío la entrada Descripción 2: Se colocó un número mayor en rango mínimo y en rango máximo uno menor. Forma de solucionarlo: Poner texto en el campo Descripción y colocar el número menor en Rango Mínimo y el número mayor en Rango Máximo.';
+            } else {
+              btn.style.display = 'block';
+              msg.textContent = '';
+            }
+          }
+          form.addEventListener('input', validar);
+          validar();
+        })();
+      </script>
+    
+    {% elif seccion == 'factorval' and accion == 'editar' and not obj_id %}
+      <div class="card">
+        <h2>Editar FactorVal</h2>
+        <div class="sql-table">
+          {% for fv in factor_vals %}
+            <div class="sql-row">
+              <div class="sql-cell">
+                <strong>ID:</strong> {{ fv.id_factor }}<br>
+                <strong>Rango:</strong> {{ fv.rango_minimo }} - {{ fv.rango_maximo }}
+              </div>
+              <div class="sql-action">
+                <a class="btn-edit" href="?seccion=factorval&accion=editar&obj_id={{ fv.id_factor }}">Editar</a>
+                {% if permisos.eliminar_factorval %}
+                <a class="btn-danger" href="{% url 'eliminar_factorv' fv.id_factor %}" onclick="return confirm('¿Estás seguro de eliminar este registro?')">Eliminar</a>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    
+    {% elif seccion == 'factorval' and accion == 'editar' and obj %}
+      <div class="card">
+        <h2>Editar FactorVal</h2>
+        <form method="post" action="{% url 'actualizar_factorv' obj.id_factor %}" id="formEditarFactor">
+          {% csrf_token %}
+          <label>Rango Mínimo</label>
+          <input type="text" name="rango_minimo" value="{{ obj.rango_minimo }}" class="solo-float-validado" required>
+          <label>Rango Máximo</label>
+          <input type="text" name="rango_maximo" value="{{ obj.rango_maximo }}" class="solo-float-validado" required>
+          <label>Descripción</label>
+          <textarea name="descripcion" rows="2" required>{{ obj.descripcion }}</textarea>
+          <button type="submit" class="btn-success mt-3" id="btnEditarFactor">Guardar cambios</button>
+          <div id="msgErrorFactorEdit" style="color:#ff4d4d;margin-top:10px;font-size:14px;"></div>
+        </form>
+      </div>
+      <script>
+        (function(){
+          const form = document.getElementById('formEditarFactor');
+          const btn = document.getElementById('btnEditarFactor');
+          const msg = document.getElementById('msgErrorFactorEdit');
+          function validar(){
+            const min = parseFloat(form.rango_minimo.value) || 0;
+            const max = parseFloat(form.rango_maximo.value) || 0;
+            const desc = form.descripcion.value.trim();
+            if (!desc || min >= max) {
+              btn.style.display = 'none';
+              msg.textContent = 'El botón de crear o guardar cambios no aparecerá porque se hicieron alguna de estas cosas: 1: Se dejó vacío la entrada Descripción 2: Se colocó un número mayor en rango mínimo y en rango máximo uno menor. Forma de solucionarlo: Poner texto en el campo Descripción y colocar el número menor en Rango Mínimo y el número mayor en Rango Máximo.';
+            } else {
+              btn.style.display = 'block';
+              msg.textContent = '';
+            }
+          }
+          form.addEventListener('input', validar);
+          validar();
+        })();
+      </script>
+    
+    {% elif seccion == 'filtrar' %}
+      <div class="card">
+        <h2>Filtrar Calificaciones</h2>
+        <form method="get" action="{% url 'filtrar_calificaciones' %}">
+          <label>RUT (sin puntos, con guión)</label><input type="text" name="rut">
+          <label>Fecha (período)</label><input type="month" name="fecha">
+          <label>Monto mínimo</label><input type="text" name="monto_min" placeholder="0" class="solo-float">
+          <label>Monto máximo</label><input type="text" name="monto_max" placeholder="999999999" class="solo-float">
+          <label>Instrumento</label>
+          <select name="instrumento" required>
+            <option value="">-- Todos --</option>
+            {% for i in instrumentos %}
+              <option value="{{ i.nombre }}">{{ i.nombre }}</option>
+            {% endfor %}
+          </select>
+      
+          <label>Factor Val</label>
+          <select name="factor_val">
+            <option value="">-- Todos --</option>
+            {% for fv in factor_vals %}
+              <option value="{{ fv.id_factor }}">{{ fv.descripcion }} ({{ fv.rango_minimo }} - {{ fv.rango_maximo }})</option>
+            {% endfor %}
+          </select>
+      
+          <button type="submit" class="btn-success mt-3">Buscar</button>
+        </form>
+      </div>
+    
+    {% elif seccion == 'asignacion_permisos' %}
+      <div class="card">
+        <h2>Asignar Permiso a Rol</h2>
+        <form method="post" action="{% url 'gestionar_asignacion_permisos' %}">
+          {% csrf_token %}
+          <label>Rol</label>
+          <select name="rol" required>
+            <option value="">-- Seleccione un rol --</option>
+            {% for r in roles %}
+              <option value="{{ r.id_rol }}">{{ r.nombre_rol }}</option>
+            {% endfor %}
+          </select>
+    
+          <label>Permiso</label>
+          <select name="permiso" required>
+            <option value="">-- Seleccione un permiso --</option>
+            {% for p in permisos_objs %}
+              <option value="{{ p.id_permiso }}">{{ p.nombre }}</option>
+            {% endfor %}
+          </select>
+    
+          <input type="hidden" name="accion" value="crear">
+          <button type="submit" class="btn-success mt-3">Asignar Permiso</button>
+        </form>
+    
+        <div style="margin-top:1.5rem;display:flex;gap:.5rem;">
+          <form method="post" action="{% url 'asignar_todos_permisos' %}" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="rol_id" id="rol-id-masivo" value="">
+            <button type="submit" class="btn btn-success"
+                    onclick="return document.getElementById('rol-id-masivo').value !== '' || (alert('Primero selecciona un rol en la lista superior'), false);">
+              Asignar todos los permisos al rol
+            </button>
+          </form>
+        </div>
+    
+        <script>
+          (function(){
+            const selectRol = document.querySelector('select[name="rol"]');
+            const hiddenRol = document.getElementById('rol-id-masivo');
+            selectRol.addEventListener('change', function(){
+              hiddenRol.value = this.value;
+            });
+            hiddenRol.value = selectRol.value;
+          })();
+        </script>
+      </div>
+    
+    {% elif seccion == 'asignacion_permisos_editacion' %}
+      <div class="card">
+        <h2>Editar / Eliminar Asignaciones de Permisos</h2>
+    
+        {% if permisos.eliminar_asignaciones %}
+        <form method="post" action="{% url 'quitar_todos_permisos' %}" style="margin-bottom: 1rem;">
+          {% csrf_token %}
+          <button type="submit" class="btn-danger"
+                  onclick="return confirm('¿Estás seguro de eliminar TODAS las asignaciones de permisos?')">
+            Eliminar todos los permisos
+          </button>
+        </form>
+        {% endif %}
+    
+        <div class="sql-table">
+          {% for a in asignaciones %}
+            <div class="sql-row">
+              <form method="post" action="{% url 'gestionar_asignacion_permisos_editacion' %}" style="width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+                {% csrf_token %}
+                <input type="hidden" name="asignacion_id" value="{{ a.id }}">
+                <input type="hidden" name="accion" value="editar">
+    
+                <div class="sql-cell" style="flex:1;">
+                  <label>Rol</label><br>
+                  <select name="nuevo_rol" style="width:100%;">
+                    {% for r in roles %}
+                      <option value="{{ r.id_rol }}" {% if r.id_rol == a.rol.id_rol %}selected{% endif %}>{{ r.nombre_rol }}</option>
+                    {% endfor %}
+                  </select>
+                  
+                </div>
+    
+                <div class="sql-cell" style="flex:1;">
+                  <label>Permiso</label><br>
+                  <select name="nuevo_permiso" style="width:100%;">
+                    {% for p in permisos_objs %}
+                      <option value="{{ p.id_permiso }}" {% if p.id_permiso == a.permiso.id_permiso %}selected{% endif %}>{{ p.nombre }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+    
+                <div class="sql-action" style="display:flex;gap:6px;">
+                  <button type="submit" class="btn" title="">💾</button>
+                  {% if permisos.eliminar_asignaciones %}
+                  <a href="{% url 'eliminar_asignacion_individual' a.id %}"
+                     class="btn-danger"
+                     onclick="return confirm('¿Estás seguro de eliminar esta asignación?')"
+                     title="">🗑️</a>
+                  {% endif %}
+                </div>
+              </form>
+            </div>
+          {% empty %}
+            <p style="color:#ccc;">No hay asignaciones creadas aún.</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
 
-<script>
-document.querySelectorAll('.solo-texto').forEach(function(inp){
-  inp.addEventListener('input', function(){
-    this.value = this.value.replace(/[0-9]/g, '');
-  });
-  inp.addEventListener('blur', function(){
-    this.value = this.value.trim();
-    if (this.value === '') {
-      this.setCustomValidity('Campo obligatorio (no solo espacios)');
-    } else {
-      this.setCustomValidity('');
-    }
-  });
-});
-
-document.querySelectorAll('.solo-float').forEach(function(inp){
-  inp.addEventListener('input', function(){
-    let v = this.value;
-    v = v.replace(/[^0-9.]/g, '');
-    let parts = v.split('.');
-    if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
-    if (v.startsWith('.')) v = '0' + v;
-    if (v.startsWith('-')) v = v.slice(1);
-    this.value = v;
-  });
-  inp.addEventListener('blur', function(){
-    let n = parseFloat(this.value);
-    if (isNaN(n) || n < 0) {
-      this.setCustomValidity('Número positivo obligatorio');
-    } else {
-      this.setCustomValidity('');
-    }
-  });
-});
-
-document.querySelectorAll('.solo-rut').forEach(function(inp){
-  inp.addEventListener('input', function(){
-    this.value = this.value.replace(/[^0-9kK-]/g, '');
-  });
-});
-
-document.querySelectorAll('.solo-float-validado').forEach(function(inp){
-  inp.addEventListener('input', function(){
-    let v = this.value;
-    v = v.replace(/[^0-9.]/g, '');
-    v = v.replace(/-/g, '');
-    v = v.replace(/\s/g, '');
-    let parts = v.split('.');
-    if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
-    if (v.startsWith('.')) v = '0' + v;
-    this.value = v;
-  });
-  inp.addEventListener('blur', function(){
-    let n = parseFloat(this.value);
-    if (isNaN(n) || n <= 0) {
-      this.setCustomValidity('Ingrese un número positivo mayor a 0');
-    } else {
-      this.setCustomValidity('');
-    }
-  });
-});
-</script>
-
-<script>
-  (function(){
-    const hoyMes = new Date().toISOString().slice(0,7);
-    const hoyDia = new Date().toISOString().slice(0,10);
-    document.querySelectorAll('input[type="month"]').forEach(function(el){
-      el.max = hoyMes;
-      if (el.value > hoyMes) el.value = hoyMes;
+  <script>
+    document.querySelectorAll('.solo-texto').forEach(function(inp){
+      inp.addEventListener('input', function(){
+        this.value = this.value.replace(/[0-9]/g, '');
+      });
+      inp.addEventListener('blur', function(){
+        this.value = this.value.trim();
+        if (this.value === '') {
+          this.setCustomValidity('Campo obligatorio (no solo espacios)');
+        } else {
+          this.setCustomValidity('');
+        }
+      });
     });
-    document.querySelectorAll('input[type="date"]').forEach(function(el){
-      el.max = hoyDia;
-      if (el.value > hoyDia) el.value = hoyDia;
+
+    document.querySelectorAll('.solo-float').forEach(function(inp){
+      inp.addEventListener('input', function(){
+        let v = this.value;
+        v = v.replace(/[^0-9.]/g, '');
+        let parts = v.split('.');
+        if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+        if (v.startsWith('.')) v = '0' + v;
+        if (v.startsWith('-')) v = v.slice(1);
+        this.value = v;
+      });
+      inp.addEventListener('blur', function(){
+        let n = parseFloat(this.value);
+        if (isNaN(n) || n < 0) {
+          this.setCustomValidity('Número positivo obligatorio');
+        } else {
+          this.setCustomValidity('');
+        }
+      });
     });
-  })();
-</script>
+
+    document.querySelectorAll('.solo-rut').forEach(function(inp){
+      inp.addEventListener('input', function(){
+        this.value = this.value.replace(/[^0-9kK-]/g, '');
+      });
+    });
+
+    document.querySelectorAll('.solo-float-validado').forEach(function(inp){
+      inp.addEventListener('input', function(){
+        let v = this.value;
+        v = v.replace(/[^0-9.]/g, '');
+        v = v.replace(/-/g, '');
+        v = v.replace(/\s/g, '');
+        let parts = v.split('.');
+        if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+        if (v.startsWith('.')) v = '0' + v;
+        this.value = v;
+      });
+      inp.addEventListener('blur', function(){
+        let n = parseFloat(this.value);
+        if (isNaN(n) || n <= 0) {
+          this.setCustomValidity('Ingrese un número positivo mayor a 0');
+        } else {
+          this.setCustomValidity('');
+        }
+      });
+    });
+  </script>
+
+  <script>
+    (function(){
+      const hoyMes = new Date().toISOString().slice(0,7);
+      const hoyDia = new Date().toISOString().slice(0,10);
+      document.querySelectorAll('input[type="month"]').forEach(function(el){
+        el.max = hoyMes;
+        if (el.value > hoyMes) el.value = hoyMes;
+      });
+      document.querySelectorAll('input[type="date"]').forEach(function(el){
+        el.max = hoyDia;
+        if (el.value > hoyDia) el.value = hoyDia;
+      });
+    })();
+  </script>
 
 </body>
 </html>

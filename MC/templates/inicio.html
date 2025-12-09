@@ -6,9 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inicio - {{ nombre_usuario_login }}</title>
     <style>
-        
         body { font-family: sans-serif; margin: 0; padding: 0; background: #fff; color: #333; }
-        
         .header { 
             background: #E50000;
             color: white; 
@@ -36,17 +34,13 @@
             text-decoration: none; 
             font-size: 10px;
         }
-
         .main-container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
-        
         .content-layout { display: flex; flex-direction: column; gap: 30px; } 
-
         .top-panel { 
             display: flex; 
             gap: 20px; 
             align-items: flex-start;
         }
-
         .form-area { 
             flex: 1; 
             display: flex;
@@ -54,21 +48,14 @@
             gap: 15px;
             padding: 10px 0;
         }
-        
         .results-area {
             width: 100%;
             margin-top: 20px; 
-            
         }
-
-       
         .card { background: white; padding: 0; box-shadow: none; border-radius: 0; }
-        
         h2 { color: black; margin: 0 0 10px 0; font-size: 1.2em; font-weight: 600; text-transform: uppercase; }
-        
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-weight: normal; margin-bottom: 5px; color: black; font-size: 12px; }
-        
         .form-group input[type="text"] { 
             width: 100%; 
             padding: 8px; 
@@ -77,7 +64,6 @@
             border-radius: 0;
             box-sizing: border-box; 
         }
-        
         .input-group { margin-top: 10px; }
         .input-group button { 
             padding: 10px 20px; 
@@ -91,8 +77,6 @@
             font-size: 16px;
         }
         .input-group button:hover { background: #333; }
-
-       
         .error, .success, .info { 
             padding: 10px; 
             margin: 10px 0;
@@ -102,8 +86,6 @@
         .error { color: #d32f2f; border-color: #d32f2f; }
         .success { color: #2e7d32; border-color: #2e7d32; }
         .info { color: #1565c0; border-color: #1565c0; }
-
-       
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { 
             border: 1px solid #ccc; 
@@ -112,7 +94,6 @@
             font-size: 14px; 
         }
         th { background-color: #f0f0f0; font-weight: bold; }
-        
         .logo-footer { margin-top: 50px; font-weight: bold; font-size: 18px; }
         .footer-icons { margin-top: 10px; font-size: 20px; color: #555; }
     </style>
@@ -132,28 +113,6 @@
         <div class="top-panel">
             
             <div class="form-area">
-                
-                <!-- ========== NUEVO BLOQUE CONDICIONAL (SIN TOCAR LO ANTERIOR) ========== -->
-                {% if permisos.filtrar_propias_calificaciones %}
-                <div class="card">
-                    <h2>CONSULTAR MIS CALIFICACIONES</h2>
-                    <form method="GET" action="{% url 'filtrar_calificaciones_por_rut' %}">
-                        <div class="form-group">
-                            <label>RUT:</label>
-                            <input type="text" name="rut" value="{{ request.user.perfil.rut }}" readonly>
-                        </div>
-                        <div class="input-group">
-                            <button type="submit">Ver mis calificaciones</button>
-                        </div>
-                    </form>
-                </div>
-                {% else %}
-                <div class="card">
-                    <h2>ACCESO RESTRINGIDO</h2>
-                    <p class="info">No tienes permiso para consultar tus calificaciones.</p>
-                </div>
-                {% endif %}
-                <!-- ====================================================================== -->
                 
                 <div class="card">
                     <h2>INGRESE SUS DATOS :</h2>

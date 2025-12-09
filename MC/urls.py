@@ -10,11 +10,12 @@ urlpatterns = [
     path('admin/eliminar-rol/<int:id_rol>/', views.eliminar_rol, name='eliminar_rol'),
     path('admin/eliminar-permiso/<int:id_permiso>/', views.eliminar_permiso, name='eliminar_permiso'),
    
-    path('admin/actualizar-calificacion/<int:calid>/', views.actualizar_calificacion, name='actualizar_calificacion'),
+    path('admin/actualizar-calificacion/<int:calid>/', views.actualizar_calificacion , name='actualizar_calificacion'),
     path('admin/actualizar-usuario/<int:id_usuario>/', views.actualizar_usuario, name='actualizar_usuario'),
     path('admin/actualizar-instrumento/<int:id_instru>/', views.actualizar_instrumento, name='actualizar_instrumento'),
     
     path('filtrar-calificaciones/', views.filtrar_calificaciones, name='filtrar_calificaciones'),
+    path('filtrar-calificaciones-por-rut/', views.filtrar_calificaciones_por_rut, name='filtrar_calificaciones_por_rut'),
     
     path('operador/crear-calificacion/', views.crear_calificacion, name='crear_calificacion'),
     path('operador/carga-masiva/', views.carga_masiva, name='carga_masiva'),
@@ -40,6 +41,6 @@ urlpatterns = [
     path('eliminar-factorv/<int:id_factor>/', views.eliminar_factorv, name='eliminar_factorv'),
     path('asignar/todos/', views.asignar_todos_permisos, name='asignar_todos_permisos'),
     path('asignar/quitar-todos/', views.quitar_todos_permisos, name='quitar_todos_permisos'),
-
+    path('admin/eliminar-asignacion/<int:asignacion_id>/', views.eliminar_asignacion_individual, name='eliminar_asignacion_individual'),
     path('admin/', admin.site.urls),
 ]

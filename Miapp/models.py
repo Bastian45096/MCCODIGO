@@ -152,7 +152,7 @@ class Calificacion(models.Model):
     ESTADOS = [('ACTIVO','ACTIVO'), ('ELIMINADO','ELIMINADO'), ('PENDIENTE','PENDIENTE')]
     
     calid = models.AutoField(primary_key=True)
-    monto = models.DecimalField(max_digits=18, decimal_places=2)
+    monto = models.DecimalField(max_digits=18, decimal_places=1)
     factor = models.DecimalField(max_digits=10, decimal_places=1)
     periodo = models.DateField()
     instrumento = models.ForeignKey(InstrumentoNI, on_delete=models.PROTECT)
