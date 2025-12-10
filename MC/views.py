@@ -10,7 +10,11 @@ from Miapp.forms import LoginUsuarioForm
 from Miapp.models import (UserAuth, Usuario, Calificacion, InstrumentoNI,
                           Factor_Val, CargaMasiva, Rol, Permiso, Auditoria, RolPermiso, Busqueda)
 import logging
+import csv, io, traceback
 import re
+import pandas as pd
+import csv
+import io
 from django.db import transaction
 from datetime import datetime
 import json
@@ -418,20 +422,114 @@ def crear_calificacion(request):
 @login_required
 @requiere_permiso_operador('carga_masiva')
 def carga_masiva(request):
-    if request.method == 'POST' and request.FILES.get('archivo'):
+    """
+    Carga masiva de calificaciones desde CSV.
+    Columnas obligatorias (exacto):
+        rut,monto,factor,periodo,instrumento,factor_valor
+    periodo -> dd/mm/yyyy
+    factor_valor -> debe estar DENTRO de algún rango (min-max) existente
+    """
+    if request.method != 'POST' or not request.FILES.get('archivo'):
+        messages.error(request, 'No se recibió ningún archivo.')
+        return redirect(get_redirect_url(request))
+
+    archivo = request.FILES['archivo']
+    if not archivo.name.lower().endswith('.csv'):
+        messages.error(request, 'Solo se permiten archivos .csv')
+        return redirect(get_redirect_url(request))
+
+    # --- lectura del CSV ---
+    try:
+        datos = io.StringIO(archivo.read().decode('utf-8'))
+        reader = csv.DictReader(datos)
+    except Exception as exc:
+        messages.error(request, f'Error leyendo el archivo: {exc}')
+        return redirect(get_redirect_url(request))
+
+    ok = 0
+    err = 0
+    detalle_errores = []
+
+    # --- comprobamos que vengan TODAS las columnas ---
+    columnas_req = {'rut', 'monto', 'factor', 'periodo', 'instrumento', 'factor_valor'}
+    if not columnas_req.issubset(reader.fieldnames or []):
+        faltan = columnas_req - set(reader.fieldnames or [])
+        messages.error(request, f'Faltan columnas en el CSV: {", ".join(faltan)}')
+        return redirect(get_redirect_url(request))
+
+    for n_fila, row in enumerate(reader, start=2):   # fila 2 = primera de datos
         try:
-            archivo = request.FILES['archivo']
-            data = json.load(archivo)
-            obj = CargaMasiva.objects.create(archivo=data, errores='')
-            Auditoria.registrar(
-                accion='CARGA_MASIVA',
-                tabla='CargaMasiva',
-                cambios=f'Archivo id={obj.id_cm}',
-                request=request
+            # ---------- lectura segura ----------
+            rut        = (row.get('rut') or '').strip()
+            monto_str  = (row.get('monto') or '').strip()
+            factor_str = (row.get('factor') or '').strip()
+            periodo_str= (row.get('periodo') or '').strip()
+            instr_n    = (row.get('instrumento') or '').strip()
+            val_fv_str = (row.get('factor_valor') or '').strip()
+
+            if not all([rut, monto_str, factor_str, periodo_str, instr_n, val_fv_str]):
+                raise ValueError('campo vacío')
+
+            monto   = float(monto_str.replace(',', '.'))   # admite 99.999,99 o 99999.99
+            factor  = float(factor_str.replace(',', '.'))
+            val_fv  = float(val_fv_str.replace(',', '.'))
+            periodo = datetime.strptime(periodo_str, '%d/%m/%Y').date()
+            # ---------- FKs ----------
+            usr  = Usuario.objects.get(rut__iexact=rut)
+            inst = InstrumentoNI.objects.get(nombre=instr_n)
+            fval = Factor_Val.objects.get(
+                rango_minimo__lte=val_fv,
+                rango_maximo__gte=val_fv,
             )
-            messages.success(request, 'Archivo cargado y registrado.')
+
+            # ---------- inserción ----------
+            Calificacion.objects.create(
+                monto=monto,
+                factor=factor,
+                periodo=periodo,
+                instrumento=inst,
+                usuario_id_usuario=usr.user_auth,
+                factor_val_id_factor=fval,
+                estado='ACTIVO',
+            )
+            ok += 1
+
         except Exception as e:
-            messages.error(request, f'Error en el archivo: {e}')
+            err += 1
+            detalle_errores.append(f'Fila {n_fila}: {e}')
+            # opcional: ver en consola del servidor
+            traceback.print_exc()
+
+    # ---------- registro de carga ----------
+    resumen = f'OK:{ok}  ERR:{err}'
+    if detalle_errores:
+        resumen += '\n' + '\n'.join(detalle_errores[:50])   # máx 50 líneas
+
+    cm = CargaMasiva.objects.create(
+        archivo=archivo,
+        procesado=True,
+        errores=resumen,
+        usuario=request.user,
+    )
+
+    # ---------- auditoría ----------
+
+    Auditoria.registrar(
+        accion='CARGA_MASIVA',
+        tabla='Calificacion',
+        cambios=f'CSV id={cm.id_cm} -> {ok} OK / {err} ERR',
+        request=request,
+    )
+
+    # ---------- mensaje al usuario ----------
+    if err == 0:
+        messages.success(request, f'Carga finalizada: {ok} calificaciones creadas.')
+    else:
+        messages.warning(
+            request,
+            f'Carga finalizada: {ok} creadas, {err} errores (detalle en CargaMasiva id={cm.id_cm}).',
+        )
+
     return redirect(get_redirect_url(request))
 
 @login_required

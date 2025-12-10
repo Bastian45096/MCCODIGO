@@ -196,7 +196,10 @@ class Calificacion(models.Model):
 
 class CargaMasiva(models.Model):
     id_cm = models.AutoField(primary_key=True)
-    archivo = models.FileField(upload_to='cargas_masivas/%Y/%m/%d/')
+    archivo = models.FileField(
+        upload_to='cargas_masivas/%Y/%m/%d/',
+        help_text="Solo archivos .csv"
+    )
     errores = models.TextField(blank=True)
     procesado = models.BooleanField(default=False)
     fecha = models.DateTimeField(auto_now_add=True, null=True, blank=True)
